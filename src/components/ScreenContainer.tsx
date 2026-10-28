@@ -35,6 +35,7 @@ export function ScreenContainer({ children, scroll = false, style }: ScreenConta
         <ScrollView
           style={styles.scroll}
           contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
           <View style={inner}>{children}</View>

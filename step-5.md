@@ -24,5 +24,10 @@ Screen to enter Player 1 and Player 2 names and start a Gin Rummy game.
 - Layout good on small phone with keyboard open and on tablets in both orientations.
 
 ## Handoff notes (fill in when done)
-- Route names, components: _TBD_
-- Update `step-6.md` with: scoreboard route, store selectors available.
+- Route: `/gin/setup` (`src/app/gin/setup.tsx`). On Start it calls `startGame(names)`, saves the names, then `router.replace('/gin/scoreboard' as never)`.
+- Name logic (pure, tested): `src/features/setup/playerNames.ts` — `validateNames`, `effectiveName`, `MAX_NAME_LENGTH` (20), `loadLastNames`/`saveLastNames`. Empty names default to "Player 1"/"Player 2"; names must differ case-insensitively (after defaults).
+- Last-used names persist in AsyncStorage under `card-keeper/gin-rummy/last-names` (separate from the game store, so `clear()` doesn't wipe them).
+- Replace-saved-game confirm uses `selectHasSavedGame` + `Alert.alert` at press time.
+- `ScreenContainer` scroll mode now sets `keyboardShouldPersistTaps="handled"`; setup wraps it in a `KeyboardAvoidingView` (`behavior="padding"`).
+- Not yet verified on a device/emulator (only typecheck, lint, unit tests).
+- `step-6.md` updated with scoreboard route and selectors.

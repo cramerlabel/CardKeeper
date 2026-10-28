@@ -1,7 +1,9 @@
 # Step 6 — Scoreboard screen
 
 ## Context
-See `step-0.md`. Route and store info from Step 5 (_Step 5 must update this section_).
+See `step-0.md`. Route and store info from Step 5:
+- Scoreboard route is `/gin/scoreboard` (stub at `src/app/gin/scoreboard.tsx` — replace its body, keep the path). Setup reaches it via `router.replace('/gin/scoreboard' as never)` (typed routes off), so Back from the scoreboard goes to Home, not setup.
+- Store (`@/games/ginRummy/store`): `useGinStore`, `useGinHydrated()` (wait before reading `currentGame`), selectors `selectTotals`, `selectHandsWon`, `selectIsGameOver`, `selectFinalScore`, `selectHasSavedGame`; actions `addHand`, `updateHand`, `undoLastHand`, `finishGame`, `abandonGame`. `currentGame.players` holds the final (defaulted) names.
 
 ## Goal
 The main in-game screen: each player's current score, hand-by-hand history, who won each hand.

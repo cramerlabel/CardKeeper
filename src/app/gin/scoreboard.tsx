@@ -16,7 +16,6 @@ import { useResponsive } from '@/hooks/useResponsive';
 import { colors, spacing, typography } from '@/theme';
 
 const TARGET = DEFAULT_SCORING_CONFIG.targetScore;
-const DENSE_MAX_HEIGHT = 480;
 
 const goHome = () => (router.canGoBack() ? router.back() : router.replace('/'));
 const openHandEntry = (handId?: string) =>
@@ -30,7 +29,7 @@ export default function GinScoreboardScreen() {
   const undoLastHand = useGinStore((s) => s.undoLastHand);
   const finishGame = useGinStore((s) => s.finishGame);
   const abandonGame = useGinStore((s) => s.abandonGame);
-  const { isLandscape, sizeClass, height } = useResponsive();
+  const { isLandscape, sizeClass, isDense: dense } = useResponsive();
   const scale = useTextScale();
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -55,7 +54,6 @@ export default function GinScoreboardScreen() {
   const hasHands = game.hands.length > 0;
   const leader = leaderOf(totals);
   const sideBySide = isLandscape || sizeClass === 'expanded';
-  const dense = isLandscape && height < DENSE_MAX_HEIGHT;
 
   const confirmUndo = () => {
     const last = game.hands[game.hands.length - 1];

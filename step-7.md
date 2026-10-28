@@ -26,5 +26,11 @@ Both players enter their deadwood at the end of a hand; the app computes the poi
 - Works in portrait/landscape on phone and tablet.
 
 ## Handoff notes (fill in when done)
-- Route names, components, any engine changes made: _TBD_
-- Update `step-8.md` with: how game-over is detected and what store data is available.
+- DONE. Route `/gin/hand` (`src/app/gin/hand.tsx`): add mode with no params, edit mode with `?handId=`. No engine changes.
+- Pure logic (tested, `src/features/handEntry/handEntry.ts`): `EntryState` (knocker, kind, deadwood as typed strings), `evaluateEntry` (uses the engine's `validateHandInput`/`scoreHand`; returns `incomplete` / `invalid` / `ready` with message + `endsGame`), locking rules (`isLocked`, `changeKind`, `changeKnocker`), digit helpers (`appendDigit` caps at `maxDeadwood`, `stepDeadwood`). Knocker errors (e.g. knock over 10, knock with 0) show as soon as the knocker's deadwood is typed.
+- UI: `src/components/SegmentedControl.tsx` (new, reusable), `src/features/handEntry/{Keypad,DeadwoodField,HandPreview}.tsx`. Custom keypad only, no system keyboard. Tap a deadwood card to select it; −/+ steppers per player; Gin/Big Gin lock the knocker's field at 0 and the other field becomes active.
+- Save: `addHand` or `updateHand`, then `router.back()`; the scoreboard handles the game-over redirect. Store errors are shown in the preview box. Editing a hand that is not the last asks for confirmation first. The edited hand is captured at mount so `updateHand` removing it can't trigger a redirect mid-navigation. A `saved` ref blocks double-tap saves.
+- Layouts: single scrolling column on compact portrait; two columns (form left, keypad + Save right) for landscape or expanded; "dense" landscape (height < 480dp, e.g. phone on its side) puts Save in the header, shows knocker/hand-type pickers side by side, hides labels/steppers, and only the form scrolls. `useResponsive` gained `isDense` (and exported `DENSE_MAX_HEIGHT`); the scoreboard now uses it too.
+- Verified on the Pixel 7 emulator (restarted after it hung): add knock / gin / big gin, invalid knock (11) blocked, edit non-last hand with confirm and recalculated totals, game-ending hand redirects to the game-over stub, portrait + landscape; and a tablet-sized display (`wm size 1600x2560`, density 240) in portrait and landscape. Real `Pixel_Tablet_API_35` AVD still not booted.
+- Rough edge: on tall tablets the form is top-aligned with empty space below.
+- `step-8.md` updated.

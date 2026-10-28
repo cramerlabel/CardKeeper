@@ -5,6 +5,7 @@ export type SizeClass = 'compact' | 'medium' | 'expanded';
 export const MEDIUM_MIN_WIDTH = 600;
 export const EXPANDED_MIN_WIDTH = 840;
 const BASE_WIDTH = 360;
+export const DENSE_MAX_HEIGHT = 480;
 const MIN_SCALE = 0.85;
 const MAX_SCALE = 1.5;
 
@@ -35,6 +36,8 @@ export interface Responsive {
   height: number;
   sizeClass: SizeClass;
   isLandscape: boolean;
+  /** Landscape with little vertical room (phones on their side): screens should economise on height. */
+  isDense: boolean;
   /** Scales a design value (authored at 360dp wide) to the current width, clamped. */
   scale: (n: number) => number;
   maxContentWidth: number;
@@ -49,6 +52,7 @@ export function useResponsive(): Responsive {
     height,
     sizeClass,
     isLandscape: width > height,
+    isDense: width > height && height < DENSE_MAX_HEIGHT,
     scale: (n: number) => Math.round(n * factor),
     maxContentWidth: getMaxContentWidth(sizeClass),
   };

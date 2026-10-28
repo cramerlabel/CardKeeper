@@ -1,7 +1,7 @@
 # Step 8 — Game over screen
 
 ## Context
-See `step-0.md` (final score rules) and `step-2.md` (`computeFinalScore`). Detection/store details from Step 7 (_Step 7 must update this section_).
+See `step-0.md` (final score rules) and `step-2.md` (`computeFinalScore`). Detection/store details from Step 7: the hand entry screen never navigates to game over itself. `addHand`/`updateHand` run `deriveStatus`, which sets `currentGame.status = 'finished'` as soon as a total reaches 100 (and moves the game into `history`); the screen then calls `router.back()` and the scoreboard redirects. The hand entry preview also shows "<name> reaches 100 and wins the game" before saving. Editing an earlier hand can reopen a finished game or truncate later hands (`updateHand` re-derives status from `'inProgress'`).
 From Step 6: route `/gin/game-over` (stub at `src/app/gin/game-over.tsx` — replace its body, keep the path). The scoreboard reaches it with `router.replace` whenever it is focused and `currentGame.status === 'finished'` (set automatically when a total hits 100, or by the scoreboard menu's "End game now" → `finishGame`). Use `selectFinalScore`, `selectTotals`, `selectHandsWon` and `currentGame.players`. The stub's "Back to menu" does `router.replace('/')`. Note Home's Continue card only shows for `status === 'inProgress'`, but `/gin/scoreboard` for a finished game still redirects here.
 
 ## Goal

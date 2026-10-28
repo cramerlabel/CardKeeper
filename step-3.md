@@ -31,5 +31,9 @@ A game registry (so new games plug in) and a persisted Gin Rummy game store with
 - Adding a new game requires only a registry entry and a game module.
 
 ## Handoff notes (fill in when done)
-- Store file path, hook names (e.g. `useGinStore`), selectors: _TBD_
-- Update `step-4.md` with: registry shape, how to detect a saved in-progress game.
+- Registry: `src/games/registry.ts` (`games`, `getGame(id)`); `GameDefinition` in `src/games/types.ts` now has `playerCount: number | [min,max]` and `available: boolean`. Gin Rummy available; Hearts/Spades/Euchre are `available: false`.
+- Store: `src/games/ginRummy/store/` — import from `@/games/ginRummy/store`: `useGinStore` (Zustand + persist, AsyncStorage, key `card-keeper/gin-rummy`, schema v1), `useGinHydrated()`, `createGinStore(storage)` (factory, used by tests; the index imports AsyncStorage so tests import `createGinStore.ts` directly).
+- State: `currentGame: GinGame | null` (`{ id, startedAt, players, hands, status }`), `history: GinGame[]` (last 20 finished, newest first).
+- Actions: `startGame(names)`, `addHand(input)`, `updateHand(id, input)`, `undoLastHand()`, `finishGame()`, `abandonGame()`, `clear()`. `addHand`/`updateHand`/`undoLastHand`/`finishGame` return `{ ok: true } | { ok: false; errors: string[] }` (no throwing). Status is always re-derived (`finished` when ≥ target; `finishGame` can end early; undo/edit reopens a game that is no longer over). Edits that end the game earlier truncate later hands.
+- Selectors (memoized, safe for `useGinStore(selector)`): `selectTotals`, `selectHandsWon`, `selectIsGameOver`, `selectFinalScore`, `selectHasSavedGame`.
+- Persistence: hydrated data is re-validated and every hand is re-scored from its input; corrupt/missing storage yields an empty store. `migrateState` is the version-migration stub.

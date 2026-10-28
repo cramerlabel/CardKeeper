@@ -1,7 +1,9 @@
 # Step 4 — Game selection screen
 
 ## Context
-See `step-0.md`. Registry and store from Step 3 (_Step 3 must update this section with registry shape and the saved-game detection API_). Theme and `useResponsive` / `ScreenContainer` from Step 1.
+See `step-0.md`. Registry and store from Step 3:
+- Registry: `import { games } from '@/games/registry'`; each `GameDefinition` has `id, name, description, route, icon, playerCount (number | [min,max]), available`. Render `!available` as "Coming soon".
+- Saved game: `import { useGinStore, useGinHydrated, selectHasSavedGame, selectTotals } from '@/games/ginRummy/store'`. Wait for `useGinHydrated()` to be true, then `useGinStore(selectHasSavedGame)` is true when an in-progress game exists; read `useGinStore(s => s.currentGame)` (players, hands) and `useGinStore(selectTotals)` for the banner. Discard = `useGinStore.getState().abandonGame()`. Theme and `useResponsive` / `ScreenContainer` from Step 1.
 
 ## Goal
 The app's home screen: pick a game type.
@@ -20,5 +22,10 @@ The app's home screen: pick a game type.
 - Continue banner appears only when a saved game exists.
 
 ## Handoff notes (fill in when done)
-- Route names/paths, shared components created (`GameCard`, etc.): _TBD_
-- Update `step-5.md` with: navigation paths and which components to reuse.
+- DONE. Verified on the Pixel 7 phone AVD (portrait + landscape) and Pixel Tablet AVD (portrait + landscape): grid, Continue banner (seeded game), confirm-discard dialog, Gin Rummy navigation, and non-tappable dimmed "Coming soon" cards.
+- Routes (expo-router, `src/app/`): `/` home (`index.tsx`); `/gin/setup` (stub, Step 5, `gin/setup.tsx`); `/gin/scoreboard` (stub, Step 6, `gin/scoreboard.tsx`). Registry Gin Rummy `route` is now `/gin/setup`. Navigation uses `router.push(route as never)` (typed routes are not enabled).
+- Home components in `src/features/home/`: `GameCard` (Pressable + `Card`, scale/opacity press feedback, haptics, a11y label, "Coming soon" badge, dimmed + disabled when `!available`), `GameGrid` (equal-flex rows via `chunk`, no width measuring), `ContinueGameCard` (players, totals, hands played, Continue + Discard with `Alert.alert` confirm), `grid.ts` (`getGridColumns(sizeClass, isLandscape, contentWidth)`, `chunk`; columns follow compact 1–2 / medium 2–3 / expanded 3–4 but are reduced so cards stay ≥220dp wide). `src/games/playerCount.ts` has `formatPlayerCount`.
+- Continue banner: shown when `useGinHydrated() && selectHasSavedGame && currentGame`. Continue → `/gin/scoreboard`; Discard → `useGinStore.getState().abandonGame()` after confirm.
+- Gotcha: Android draws a rectangular shadow behind translucent (opacity < 1) elevated views; unavailable cards zero out `elevation`/`shadowOpacity`.
+- Gotcha: the dev build only works via the installed `com.steve.cardkeeper` app (launch with `adb shell monkey -p com.steve.cardkeeper -c android.intent.category.LAUNCHER 1` after `adb reverse tcp:8081 tcp:8081`); Expo Go can't load it (no native AsyncStorage).
+- Updated `step-5.md` with navigation paths and reusable components.

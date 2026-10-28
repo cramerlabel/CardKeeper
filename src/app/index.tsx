@@ -1,87 +1,96 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import { StyleSheet, Text, View } from 'react-native';
 
-import { Button } from '@/components/Button';
-import { Card } from '@/components/Card';
 import { ScreenContainer } from '@/components/ScreenContainer';
-import { games } from '@/games/registry';
+import { ContinueGameCard } from '@/features/home/ContinueGameCard';
+import { GameGrid } from '@/features/home/GameGrid';
+import {
+  selectHasSavedGame,
+  selectTotals,
+  useGinHydrated,
+  useGinStore,
+} from '@/games/ginRummy/store';
+import { games, getGame } from '@/games/registry';
+import type { GameDefinition } from '@/games/types';
 import { useResponsive } from '@/hooks/useResponsive';
 import { colors, radius, spacing, typography } from '@/theme';
 
 export default function HomeScreen() {
-  const { sizeClass, isLandscape, width, height, scale } = useResponsive();
-  const columns = sizeClass === 'compact' ? 1 : 2;
+  const { scale, width, height } = useResponsive();
+  // Size the title from the short side so landscape phones don't get a huge heading.
+  const titleSize = Math.min(
+    scale(typography.display.fontSize),
+    (Math.min(width, height) / 360) * 44,
+  );
+  const hydrated = useGinHydrated();
+  const hasSavedGame = useGinStore(selectHasSavedGame);
+  const currentGame = useGinStore((s) => s.currentGame);
+  const totals = useGinStore(selectTotals);
+
+  const openGame = (game: GameDefinition) => {
+    if (game.available) router.push(game.route as never);
+  };
 
   return (
     <ScreenContainer scroll>
-      <View style={styles.header}>
-        <Text style={[styles.title, { fontSize: scale(typography.display.fontSize) }]}>
-          Card Keeper
-        </Text>
-        <Text style={styles.subtitle}>Score keeping for your card games</Text>
+      <View style={styles.header} accessibilityRole="header">
+        <View style={styles.logo}>
+          <MaterialCommunityIcons
+            name="cards-playing-outline"
+            size={scale(32)}
+            color={colors.gold}
+          />
+        </View>
+        <View style={styles.headerText}>
+          <Text style={[styles.title, { fontSize: titleSize, lineHeight: titleSize * 1.18 }]}>
+            Card Keeper
+          </Text>
+          <Text style={styles.subtitle}>Score keeping for your card games</Text>
+        </View>
       </View>
 
-      <Text style={styles.sectionLabel}>GAMES</Text>
-      <View style={styles.grid}>
-        {games.map((game) => (
-          <Card key={game.id} style={{ width: columns === 1 ? '100%' : '48.5%' }}>
-            <View style={styles.gameRow}>
-              <View style={styles.iconBadge}>
-                <MaterialCommunityIcons
-                  name={game.icon as keyof typeof MaterialCommunityIcons.glyphMap}
-                  size={28}
-                  color={colors.gold}
-                />
-              </View>
-              <View style={styles.gameText}>
-                <Text style={styles.gameName}>{game.name}</Text>
-                <Text style={styles.gameDesc}>{game.description}</Text>
-              </View>
-            </View>
-            <Button label="Coming soon" variant="secondary" disabled onPress={() => {}} />
-          </Card>
-        ))}
-      </View>
+      {hydrated && hasSavedGame && currentGame && (
+        <View style={styles.section}>
+          <ContinueGameCard
+            gameName={getGame('ginRummy')?.name ?? 'Gin Rummy'}
+            players={currentGame.players}
+            totals={totals}
+            handCount={currentGame.hands.length}
+            onContinue={() => router.push('/gin/scoreboard' as never)}
+            onDiscard={() => useGinStore.getState().abandonGame()}
+          />
+        </View>
+      )}
 
-      <Card style={styles.debug}>
-        <Text style={styles.label}>RESPONSIVE</Text>
-        <Text style={styles.body}>
-          {sizeClass} · {isLandscape ? 'landscape' : 'portrait'} · {Math.round(width)}×
-          {Math.round(height)}dp
-        </Text>
-      </Card>
+      <Text style={styles.sectionLabel} accessibilityRole="header">
+        CHOOSE A GAME
+      </Text>
+      <GameGrid games={games} onSelect={openGame} />
     </ScreenContainer>
   );
 }
 
 const styles = StyleSheet.create({
-  header: { paddingVertical: spacing.xl },
-  title: { color: colors.cream, fontWeight: '800', letterSpacing: -0.5 },
-  subtitle: { ...typography.body, color: colors.textSecondary, marginTop: spacing.xs },
-  sectionLabel: {
-    ...typography.label,
-    color: colors.gold,
-    marginBottom: spacing.md,
-  },
-  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md },
-  gameRow: {
+  header: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.md,
-    marginBottom: spacing.lg,
+    gap: spacing.lg,
+    paddingVertical: spacing.xl,
   },
-  iconBadge: {
-    width: 52,
-    height: 52,
-    borderRadius: radius.md,
+  logo: {
+    width: 64,
+    height: 64,
+    borderRadius: radius.lg,
     backgroundColor: colors.feltDark,
+    borderWidth: 1.5,
+    borderColor: colors.goldDark,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  gameText: { flex: 1 },
-  gameName: { ...typography.heading, color: colors.textPrimary },
-  gameDesc: { ...typography.caption, color: colors.textSecondary, marginTop: spacing.xxs },
-  debug: { marginTop: spacing.xl, backgroundColor: colors.feltDark },
-  label: { ...typography.label, color: colors.textSecondary, marginBottom: spacing.xs },
-  body: { ...typography.body, color: colors.textPrimary },
+  headerText: { flexShrink: 1 },
+  title: { color: colors.cream, fontWeight: '800', letterSpacing: -0.5 },
+  subtitle: { ...typography.body, color: colors.textSecondary },
+  section: { marginBottom: spacing.xl },
+  sectionLabel: { ...typography.label, color: colors.gold, marginBottom: spacing.md },
 });

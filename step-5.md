@@ -1,7 +1,12 @@
 # Step 5 — New game setup (player names)
 
 ## Context
-See `step-0.md`. Routes/components from Step 4 (_Step 4 must update this section_). Store `startGame(names)` from Step 3.
+See `step-0.md`. Store `startGame(names)` from Step 3.
+
+From Step 4:
+- Home (`/`) opens this flow via the registry route `/gin/setup`. A stub already exists at `src/app/gin/setup.tsx` — replace its body (keep the path). Stub scoreboard (Step 6) is `src/app/gin/scoreboard.tsx`; navigate there after `startGame` with `router.replace('/gin/scoreboard' as never)` (typed routes are off).
+- Home's "Continue game" card already handles resuming/discarding a saved game; setup only needs the "replace saved game?" confirm (task 6) using `selectHasSavedGame` + `Alert.alert` (see `src/features/home/ContinueGameCard.tsx` for the pattern).
+- Reuse: `ScreenContainer` (pass `scroll` for keyboard), `Card`, `Button` from `src/components`; theme tokens from `@/theme`; `useResponsive()` for max width/size class. Stub screens show the centered layout pattern.
 
 ## Goal
 Screen to enter Player 1 and Player 2 names and start a Gin Rummy game.

@@ -2,6 +2,7 @@
 
 ## Context
 See `step-0.md` (final score rules) and `step-2.md` (`computeFinalScore`). Detection/store details from Step 7 (_Step 7 must update this section_).
+From Step 6: route `/gin/game-over` (stub at `src/app/gin/game-over.tsx` — replace its body, keep the path). The scoreboard reaches it with `router.replace` whenever it is focused and `currentGame.status === 'finished'` (set automatically when a total hits 100, or by the scoreboard menu's "End game now" → `finishGame`). Use `selectFinalScore`, `selectTotals`, `selectHandsWon` and `currentGame.players`. The stub's "Back to menu" does `router.replace('/')`. Note Home's Continue card only shows for `status === 'inProgress'`, but `/gin/scoreboard` for a finished game still redirects here.
 
 ## Goal
 When a player reaches ≥ 100, declare the winner and show the official final score.

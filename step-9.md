@@ -1,7 +1,11 @@
 # Step 9 — Polish and QA
 
 ## Context
-See `step-0.md`. All screens exist (Steps 4–8); _Step 8 must update this section with screens list and known rough edges_.
+See `step-0.md`. All screens exist (Steps 4–8):
+- `/` Home (game grid + Continue card), `/gin/setup`, `/gin/scoreboard`, `/gin/hand` (add/edit, `?handId=`), `/gin/game-over`. All use `ScreenContainer`, the felt theme, `useResponsive` (`sizeClass`, `isLandscape`, `isDense`) and the short-side `useTextScale` from `src/features/scoreboard/`.
+- Reusable components: `Button`, `Card`, `SegmentedControl`, `ScreenContainer`, `GameMenu`, `Keypad`.
+- Known rough edges / TODOs: tall tablets leave empty space below the hand-entry form and scoreboard history card; the scoreboard `Alexandria` name truncates next to the LEADING badge on narrow phones; the finished result can't be re-opened after leaving (only stored in `history`, no history screen); haptics are not mute-able; no error boundary; the real `Pixel_Tablet_API_35` AVD has never been booted (tablet checks used `adb shell wm size 1600x2560` + `wm density 240`; reset with `wm size reset; wm density reset`); the dense-landscape threshold (`height < 480`) was only exercised on the Pixel 7.
+- Emulator workflow notes: Metro `npx expo start --dev-client --port 8081` + `adb reverse tcp:8081 tcp:8081`; the first bundle after Metro starts can take a while, so warm it with `curl "localhost:8081/node_modules/expo-router/entry.bundle?platform=android&dev=true"` before launching, otherwise the app shows "Unable to load script". Screenshots are 1.2× the device's tap coordinates on the Pixel 7 (screencap 900px wide vs 1080px).
 
 ## Goal
 Professional look and feel, accessibility and responsive verification.

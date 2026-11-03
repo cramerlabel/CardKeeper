@@ -1,6 +1,6 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { ScreenContainer } from '@/components/ScreenContainer';
 import { ContinueGameCard } from '@/features/home/ContinueGameCard';
@@ -13,8 +13,11 @@ import {
 } from '@/games/ginRummy/store';
 import { games, getGame } from '@/games/registry';
 import type { GameDefinition } from '@/games/types';
+import { openRules } from '@/features/rules/openRules';
 import { useResponsive } from '@/hooks/useResponsive';
+import { useSettingsStore } from '@/settings';
 import { colors, radius, spacing, typography } from '@/theme';
+import { haptics } from '@/utils/haptics';
 
 export default function HomeScreen() {
   const { scale, width, height } = useResponsive();
@@ -27,6 +30,14 @@ export default function HomeScreen() {
   const hasSavedGame = useGinStore(selectHasSavedGame);
   const currentGame = useGinStore((s) => s.currentGame);
   const totals = useGinStore(selectTotals);
+  const hapticsEnabled = useSettingsStore((s) => s.hapticsEnabled);
+  const setHapticsEnabled = useSettingsStore((s) => s.setHapticsEnabled);
+
+  const toggleHaptics = () => {
+    setHapticsEnabled(!hapticsEnabled);
+    // Confirm the new state with a buzz only when turning it on.
+    if (!hapticsEnabled) haptics.tap();
+  };
 
   const openGame = (game: GameDefinition) => {
     if (game.available) router.push(game.route as never);
@@ -43,11 +54,30 @@ export default function HomeScreen() {
           />
         </View>
         <View style={styles.headerText}>
-          <Text style={[styles.title, { fontSize: titleSize, lineHeight: titleSize * 1.18 }]}>
+          <Text
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            minimumFontScale={0.6}
+            style={[styles.title, { fontSize: titleSize, lineHeight: titleSize * 1.18 }]}
+          >
             Card Keeper
           </Text>
           <Text style={styles.subtitle}>Score keeping for your card games</Text>
         </View>
+        <Pressable
+          onPress={toggleHaptics}
+          accessibilityRole="switch"
+          accessibilityLabel="Haptic feedback"
+          accessibilityState={{ checked: hapticsEnabled }}
+          hitSlop={4}
+          style={styles.iconButton}
+        >
+          <MaterialCommunityIcons
+            name={hapticsEnabled ? 'vibrate' : 'vibrate-off'}
+            size={24}
+            color={hapticsEnabled ? colors.gold : colors.textSecondary}
+          />
+        </Pressable>
       </View>
 
       {hydrated && hasSavedGame && currentGame && (
@@ -66,7 +96,7 @@ export default function HomeScreen() {
       <Text style={styles.sectionLabel} accessibilityRole="header">
         CHOOSE A GAME
       </Text>
-      <GameGrid games={games} onSelect={openGame} />
+      <GameGrid games={games} onSelect={openGame} onShowRules={(game) => openRules(game.id)} />
     </ScreenContainer>
   );
 }
@@ -88,7 +118,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  headerText: { flexShrink: 1 },
+  headerText: { flex: 1 },
+  iconButton: { width: 48, height: 48, alignItems: 'center', justifyContent: 'center' },
   title: { color: colors.cream, fontWeight: '800', letterSpacing: -0.5 },
   subtitle: { ...typography.body, color: colors.textSecondary },
   section: { marginBottom: spacing.xl },

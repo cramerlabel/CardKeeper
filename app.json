@@ -18,11 +18,27 @@
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.steve.cardkeeper"
+      "package": "com.steve.cardkeeper",
+      "versionCode": 1
     },
     "plugins": [
       "expo-router",
-      "expo-font"
+      "expo-font",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#0B3D2E",
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 220
+        }
+      ],
+      "expo-system-ui",
+      [
+        "expo-navigation-bar",
+        {
+          "style": "light"
+        }
+      ]
     ],
     "scheme": "cardkeeper",
     "backgroundColor": "#0B3D2E"

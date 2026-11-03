@@ -30,12 +30,15 @@ const RowView = memo(function RowView({ row, fontSize, players, onSelectHand }: 
       accessibilityHint="Opens this hand for editing"
       style={({ pressed }) => [styles.row, pressed && styles.pressed]}
     >
-      <Text style={[styles.number, { fontSize, width: fontSize * 2 }]}>{row.number}</Text>
+      <Text maxFontSizeMultiplier={1.2} style={[styles.number, { fontSize, width: fontSize * 2 }]}>
+        {row.number}
+      </Text>
       <View style={styles.winnerCell}>
-        <Text numberOfLines={1} style={[styles.winner, { fontSize }]}>
+        <Text maxFontSizeMultiplier={1.2} numberOfLines={1} style={[styles.winner, { fontSize }]}>
           {row.winnerName}
         </Text>
         <Text
+          maxFontSizeMultiplier={1.2}
           style={[
             styles.outcome,
             { fontSize: fontSize - 2 },
@@ -45,14 +48,20 @@ const RowView = memo(function RowView({ row, fontSize, players, onSelectHand }: 
           {row.outcomeLabel}
         </Text>
       </View>
-      <Text style={[styles.deadwood, { fontSize }]}>
+      <Text maxFontSizeMultiplier={1.2} style={[styles.deadwood, { fontSize }]}>
         {row.deadwood[0]} – {row.deadwood[1]}
       </Text>
-      <Text style={[styles.points, { fontSize }]}>+{row.points}</Text>
-      <Text style={[styles.total, { fontSize }]}>
-        <Text style={row.winner === 0 ? styles.totalWinner : undefined}>{row.totals[0]}</Text>
+      <Text maxFontSizeMultiplier={1.2} style={[styles.points, { fontSize }]}>
+        +{row.points}
+      </Text>
+      <Text maxFontSizeMultiplier={1.2} style={[styles.total, { fontSize }]}>
+        <Text maxFontSizeMultiplier={1.2} style={row.winner === 0 ? styles.totalWinner : undefined}>
+          {row.totals[0]}
+        </Text>
         {' – '}
-        <Text style={row.winner === 1 ? styles.totalWinner : undefined}>{row.totals[1]}</Text>
+        <Text maxFontSizeMultiplier={1.2} style={row.winner === 1 ? styles.totalWinner : undefined}>
+          {row.totals[1]}
+        </Text>
       </Text>
     </Pressable>
   );
@@ -67,19 +76,30 @@ export function HandHistory({ rows, players, onSelectHand }: HandHistoryProps) {
   return (
     <Card style={styles.card}>
       <View style={styles.titleRow}>
-        <Text style={[styles.title, { fontSize: scale(typography.heading.fontSize) }]}>Hands</Text>
+        <Text
+          maxFontSizeMultiplier={1.2}
+          style={[styles.title, { fontSize: scale(typography.heading.fontSize) }]}
+        >
+          Hands
+        </Text>
         {rows.length > 0 ? (
-          <Text style={[styles.legend, { fontSize: scale(typography.caption.fontSize) }]}>
+          <Text
+            maxFontSizeMultiplier={1.2}
+            style={[styles.legend, { fontSize: scale(typography.caption.fontSize) }]}
+          >
             {players[0]} – {players[1]}
           </Text>
         ) : null}
       </View>
       {rows.length === 0 ? (
         <View style={styles.empty}>
-          <Text style={[styles.emptyTitle, { fontSize: scale(typography.heading.fontSize) }]}>
+          <Text
+            maxFontSizeMultiplier={1.2}
+            style={[styles.emptyTitle, { fontSize: scale(typography.heading.fontSize) }]}
+          >
             No hands yet
           </Text>
-          <Text style={[styles.emptyBody, { fontSize }]}>
+          <Text maxFontSizeMultiplier={1.2} style={[styles.emptyBody, { fontSize }]}>
             Tap “Add hand” when the first hand ends. Scores will appear here.
           </Text>
         </View>
@@ -87,6 +107,7 @@ export function HandHistory({ rows, players, onSelectHand }: HandHistoryProps) {
         <>
           <View style={styles.headerRow}>
             <Text
+              maxFontSizeMultiplier={1.2}
               style={[
                 styles.number,
                 styles.headerText,
@@ -95,18 +116,32 @@ export function HandHistory({ rows, players, onSelectHand }: HandHistoryProps) {
             >
               #
             </Text>
-            <Text style={[styles.winnerCell, styles.headerText, { fontSize: labelSize }]}>
+            <Text
+              maxFontSizeMultiplier={1.2}
+              style={[styles.winnerCell, styles.headerText, { fontSize: labelSize }]}
+            >
               WINNER
             </Text>
             <Text
+              maxFontSizeMultiplier={1.2}
               numberOfLines={1}
               adjustsFontSizeToFit
               style={[styles.deadwood, styles.headerText, { fontSize: labelSize }]}
             >
               DEADWOOD
             </Text>
-            <Text style={[styles.points, styles.headerText, { fontSize: labelSize }]}>PTS</Text>
-            <Text style={[styles.total, styles.headerText, { fontSize: labelSize }]}>TOTAL</Text>
+            <Text
+              maxFontSizeMultiplier={1.2}
+              style={[styles.points, styles.headerText, { fontSize: labelSize }]}
+            >
+              PTS
+            </Text>
+            <Text
+              maxFontSizeMultiplier={1.2}
+              style={[styles.total, styles.headerText, { fontSize: labelSize }]}
+            >
+              TOTAL
+            </Text>
           </View>
           <FlatList
             data={data}

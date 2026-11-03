@@ -10,10 +10,11 @@ import { chunk, getGridColumns } from './grid';
 interface GameGridProps {
   games: readonly GameDefinition[];
   onSelect: (game: GameDefinition) => void;
+  onShowRules: (game: GameDefinition) => void;
 }
 
 /** Responsive grid built from equal-flex rows, so no width measuring is needed. */
-export function GameGrid({ games, onSelect }: GameGridProps) {
+export function GameGrid({ games, onSelect, onShowRules }: GameGridProps) {
   const { sizeClass, isLandscape, width, maxContentWidth } = useResponsive();
   const contentWidth = Math.min(width, maxContentWidth) - spacing.xl * 2;
   const columns = getGridColumns(sizeClass, isLandscape, contentWidth);
@@ -24,7 +25,7 @@ export function GameGrid({ games, onSelect }: GameGridProps) {
         <View key={rowIndex} style={styles.row}>
           {row.map((game) => (
             <View key={game.id} style={styles.cell}>
-              <GameCard game={game} onPress={onSelect} />
+              <GameCard game={game} onPress={onSelect} onShowRules={onShowRules} />
             </View>
           ))}
           {Array.from({ length: columns - row.length }, (_, i) => (

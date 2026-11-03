@@ -26,7 +26,9 @@ const knock = (opp = 25): HandInput => ({ knocker: 0, kind: 'knock', deadwood: [
 const gin = (opp = 10): HandInput => ({ knocker: 0, kind: 'gin', deadwood: [0, opp] }); // 25 + opp
 const undercut: HandInput = { knocker: 0, kind: 'knock', deadwood: [5, 3] }; // player 1: 25 + 2
 
-async function setup(storage = memoryStorage()) {
+async function setup<S extends StateStorage = ReturnType<typeof memoryStorage>>(
+  storage: S = memoryStorage() as unknown as S,
+) {
   const store = createGinStore(storage);
   await store.persist.rehydrate();
   return { store, storage };
@@ -196,11 +198,32 @@ describe('ginStore', () => {
     ];
     for (const raw of bad) {
       const { store } = await setup(memoryStorage({ [STORAGE_KEY]: raw }));
+      expect(store.persist.hasHydrated()).toBe(true);
       expect(store.getState().currentGame).toBeNull();
       expect(store.getState().history).toEqual([]);
       store.getState().startGame(['A', 'B']);
       expect(store.getState().currentGame).not.toBeNull();
     }
+  });
+
+  it('survives a storage backend that throws', async () => {
+    const broken: StateStorage = {
+      getItem: async () => {
+        throw new Error('read failed');
+      },
+      setItem: async () => {
+        throw new Error('write failed');
+      },
+      removeItem: async () => {},
+    };
+    const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    const { store } = await setup(broken);
+    expect(store.persist.hasHydrated()).toBe(true);
+    store.getState().startGame(['A', 'B']);
+    expect(store.getState().addHand(knock()).ok).toBe(true);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(warn).toHaveBeenCalled();
+    warn.mockRestore();
   });
 
   it('rebuilds points from inputs, ignoring tampered stored points, and migrates old versions', async () => {

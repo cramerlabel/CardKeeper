@@ -1,5 +1,5 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { Alert, StyleSheet, Text, View } from 'react-native';
+import { Alert, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 
 import { Button } from '@/components/Button';
 import { Card } from '@/components/Card';
@@ -22,6 +22,9 @@ export function ContinueGameCard({
   onContinue,
   onDiscard,
 }: ContinueGameCardProps) {
+  // Side-by-side buttons don't fit once the system font is enlarged.
+  const stackActions = useWindowDimensions().fontScale > 1.25;
+
   const confirmDiscard = () =>
     Alert.alert(
       'Discard game?',
@@ -61,13 +64,17 @@ export function ContinueGameCard({
         </View>
       </View>
       <Text style={styles.meta}>{handsLabel}</Text>
-      <View style={styles.actions}>
-        <Button label="Continue" onPress={onContinue} style={styles.action} />
+      <View style={[styles.actions, stackActions && styles.actionsStacked]}>
+        <Button
+          label="Continue"
+          onPress={onContinue}
+          style={stackActions ? undefined : styles.action}
+        />
         <Button
           label="Discard"
           variant="secondary"
           onPress={confirmDiscard}
-          style={styles.action}
+          style={stackActions ? undefined : styles.action}
         />
       </View>
     </Card>
@@ -86,5 +93,6 @@ const styles = StyleSheet.create({
   vs: { ...typography.caption, color: colors.textSecondary },
   meta: { ...typography.caption, color: colors.textSecondary, textAlign: 'center' },
   actions: { flexDirection: 'row', gap: spacing.md, marginTop: spacing.sm },
+  actionsStacked: { flexDirection: 'column' },
   action: { flex: 1 },
 });

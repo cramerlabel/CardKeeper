@@ -30,6 +30,7 @@ import type { HandKind, PlayerId } from '@/games/ginRummy/engine';
 import { useGinHydrated, useGinStore } from '@/games/ginRummy/store';
 import { useResponsive } from '@/hooks/useResponsive';
 import { colors, spacing, typography } from '@/theme';
+import { haptics } from '@/utils/haptics';
 
 /** Add a hand, or edit one when `handId` is given. */
 export default function GinHandEntryScreen() {
@@ -43,7 +44,7 @@ function HandEntryForm({ handId }: { handId?: string }) {
   const game = useGinStore((s) => s.currentGame);
   const addHand = useGinStore((s) => s.addHand);
   const updateHand = useGinStore((s) => s.updateHand);
-  const { isLandscape, sizeClass, isDense } = useResponsive();
+  const { isLandscape, isDense } = useResponsive();
   const scale = useTextScale();
 
   // Captured at mount: saving an edit can remove this hand from the store while we navigate back.
@@ -60,7 +61,7 @@ function HandEntryForm({ handId }: { handId?: string }) {
   const players = game.players;
   const priorHands = editing ? game.hands.slice(0, editing.number - 1) : game.hands;
   const evaluation = evaluateEntry(entry, players, priorHands);
-  const twoColumn = isLandscape || sizeClass === 'expanded';
+  const twoColumn = isLandscape;
   const activeField: PlayerId = isLocked(entry, active) ? otherPlayer(active) : active;
 
   const update = (next: EntryState, nextActive?: PlayerId) => {
@@ -92,6 +93,7 @@ function HandEntryForm({ handId }: { handId?: string }) {
       const result = editing ? updateHand(editing.id, evaluation.input) : addHand(evaluation.input);
       if (result.ok) {
         saved.current = true;
+        haptics.success();
         router.back();
       } else {
         setSaveErrors(result.errors);
@@ -114,8 +116,10 @@ function HandEntryForm({ handId }: { handId?: string }) {
   const selectedKind = HAND_KINDS.find((k) => k.kind === entry.kind);
   const title = editing ? `Edit hand ${editing.number}` : `Add hand ${game.hands.length + 1}`;
 
+  const stacked = !twoColumn && !isDense;
+
   const form = (
-    <View style={styles.column}>
+    <View style={[styles.column, stacked && styles.stackedForm]}>
       <View style={isDense ? styles.pickerRow : styles.column}>
         <View style={styles.group}>
           {isDense ? null : <Text style={styles.label}>WHO WENT OUT?</Text>}
@@ -129,7 +133,7 @@ function HandEntryForm({ handId }: { handId?: string }) {
             onChange={onKnocker}
           />
         </View>
-        <View style={styles.group}>
+        <View style={[styles.group, isDense && styles.groupWide]}>
           {isDense ? null : <Text style={styles.label}>HAND TYPE</Text>}
           <SegmentedControl
             accessibilityLabel="Hand type"
@@ -168,7 +172,7 @@ function HandEntryForm({ handId }: { handId?: string }) {
   );
 
   const input = (
-    <View style={styles.column}>
+    <View style={[styles.column, stacked && styles.stackedInput]}>
       <Keypad onDigit={onDigit} onBackspace={onBackspace} onClear={onClear} />
       {isDense ? null : saveButton}
     </View>
@@ -221,14 +225,18 @@ function HandEntryForm({ handId }: { handId?: string }) {
 const styles = StyleSheet.create({
   container: { gap: spacing.md },
   header: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  iconButton: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
+  iconButton: { width: 48, height: 48, alignItems: 'center', justifyContent: 'center' },
   title: { flex: 1, fontWeight: typography.heading.fontWeight, color: colors.textPrimary },
-  headerSave: { minHeight: 40, paddingHorizontal: spacing.lg },
+  headerSave: { minHeight: 48, paddingHorizontal: spacing.lg },
+  // Stacked portrait: natural heights, with the keypad block pinned to the bottom of tall screens.
+  stackedForm: { flex: 0 },
+  stackedInput: { flex: 0, marginTop: 'auto' },
   denseBody: { flex: 1, flexDirection: 'row', gap: spacing.lg },
   denseForm: { flex: 1 },
   twoColumn: { flexDirection: 'row', gap: spacing.lg, alignItems: 'flex-start' },
   column: { flex: 1, gap: spacing.md },
   group: { flex: 1, gap: spacing.xs },
+  groupWide: { flex: 1.35 },
   pickerRow: { flexDirection: 'row', gap: spacing.md },
   label: { ...typography.label, color: colors.gold },
   hint: { ...typography.caption, color: colors.textSecondary },

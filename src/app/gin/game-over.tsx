@@ -19,7 +19,7 @@ export default function GinGameOverScreen() {
   const hydrated = useGinHydrated();
   const game = useGinStore((s) => s.currentGame);
   const finalScore = useGinStore(selectFinalScore);
-  const { isLandscape, sizeClass, isDense } = useResponsive();
+  const { isLandscape, isDense } = useResponsive();
   // Set before leaving so the redirects below don't fire while the screen is transitioning out.
   const [leaving, setLeaving] = useState(false);
 
@@ -51,7 +51,7 @@ export default function GinGameOverScreen() {
   if (!game || !summary) return <Redirect href="/" />;
   if (game.status !== 'finished') return <Redirect href="/gin/scoreboard" />;
 
-  const twoColumn = isLandscape || sizeClass === 'expanded';
+  const twoColumn = isLandscape;
 
   const rematch = () => {
     setLeaving(true);
@@ -162,8 +162,8 @@ const styles = StyleSheet.create({
   denseRow: { flexDirection: 'row', gap: spacing.lg, alignItems: 'center' },
   denseColumn: { flex: 1 },
   denseTable: { flex: 1.2 },
-  denseButton: { minHeight: 40 },
-  link: { minHeight: 44, alignItems: 'center', justifyContent: 'center' },
+  denseButton: { minHeight: 48 },
+  link: { minHeight: 48, alignItems: 'center', justifyContent: 'center' },
   linkText: {
     ...typography.bodyStrong,
     color: colors.textSecondary,

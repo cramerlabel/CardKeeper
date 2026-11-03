@@ -23,7 +23,7 @@ const ROWS = [
 export function Keypad({ onDigit, onBackspace, onClear, disabled }: KeypadProps) {
   const scale = useTextScale();
   const { isDense } = useResponsive();
-  const keyHeight = isDense ? 44 : scale(52);
+  const keyHeight = isDense ? 48 : scale(52);
   const fontSize = scale(24);
 
   const key = (label: string, onPress: () => void, content: ReactNode, secondary = false) => (

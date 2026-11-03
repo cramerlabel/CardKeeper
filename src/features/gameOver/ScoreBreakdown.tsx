@@ -16,7 +16,7 @@ interface ScoreBreakdownProps {
 export function ScoreBreakdown({ players, rows, champion }: ScoreBreakdownProps) {
   const scale = useTextScale();
   const { isDense } = useResponsive();
-  const body = scale(typography.body.fontSize);
+  const body = isDense ? 14 : scale(typography.body.fontSize);
   const colStyle = (player: 0 | 1) => [styles.col, champion === player && styles.championCol];
 
   return (
@@ -35,7 +35,11 @@ export function ScoreBreakdown({ players, rows, champion }: ScoreBreakdownProps)
         ))}
       </View>
       {rows.map((row) => {
-        const fontSize = row.emphasis ? scale(typography.heading.fontSize + 4) : body;
+        const fontSize = row.emphasis
+          ? isDense
+            ? 22
+            : scale(typography.heading.fontSize + 4)
+          : body;
         return (
           <View
             key={row.key}
@@ -49,11 +53,17 @@ export function ScoreBreakdown({ players, rows, champion }: ScoreBreakdownProps)
             accessible
             accessibilityLabel={`${row.label}: ${players[0]} ${formatValue(row.values[0], row.plus)}, ${players[1]} ${formatValue(row.values[1], row.plus)}`}
           >
-            <View style={styles.labelCell}>
+            <View style={[styles.labelCell, isDense && styles.cellDense]}>
               <Text
                 style={[
                   styles.label,
-                  { fontSize: row.emphasis ? scale(typography.bodyStrong.fontSize + 2) : body },
+                  {
+                    fontSize: row.emphasis
+                      ? isDense
+                        ? 16
+                        : scale(typography.bodyStrong.fontSize + 2)
+                      : body,
+                  },
                   row.emphasis && styles.labelEmphasis,
                 ]}
               >
@@ -66,7 +76,7 @@ export function ScoreBreakdown({ players, rows, champion }: ScoreBreakdownProps)
               ) : null}
             </View>
             {([0, 1] as const).map((p) => (
-              <View key={p} style={colStyle(p)}>
+              <View key={p} style={[...colStyle(p), isDense && styles.cellDense]}>
                 <Text
                   style={[
                     styles.value,
@@ -96,8 +106,9 @@ const styles = StyleSheet.create({
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: colors.border,
   },
-  dataRowDense: { minHeight: 34 },
-  finalRowDense: { minHeight: 42 },
+  dataRowDense: { minHeight: 32 },
+  finalRowDense: { minHeight: 40 },
+  cellDense: { paddingVertical: spacing.xs },
   finalRow: { borderTopWidth: 2, borderTopColor: colors.border },
   labelCell: {
     flex: 1.3,

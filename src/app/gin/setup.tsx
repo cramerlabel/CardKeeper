@@ -15,6 +15,7 @@ import {
 import { Button } from '@/components/Button';
 import { Card } from '@/components/Card';
 import { ScreenContainer } from '@/components/ScreenContainer';
+import { openRules } from '@/features/rules/openRules';
 import {
   MAX_NAME_LENGTH,
   defaultName,
@@ -115,7 +116,9 @@ export default function GinSetupScreen() {
   return (
     <KeyboardAvoidingView style={styles.avoider} behavior="padding">
       <ScreenContainer scroll style={styles.container}>
-        <Text style={styles.title}>New Gin Rummy game</Text>
+        <Text style={styles.title} accessibilityRole="header">
+          New Gin Rummy game
+        </Text>
         <Card style={styles.card}>
           <NameField
             label="Player 1"
@@ -139,6 +142,7 @@ export default function GinSetupScreen() {
         </Card>
         <View style={styles.actions}>
           <Button label="Start game" onPress={submit} disabled={!valid || !hydrated} />
+          <Button label="How to play" variant="secondary" onPress={() => openRules('ginRummy')} />
           <Button label="Back" variant="secondary" onPress={() => router.back()} />
         </View>
       </ScreenContainer>
@@ -159,7 +163,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     borderRadius: radius.md,
     borderWidth: 1.5,
-    borderColor: colors.border,
+    borderColor: colors.borderStrong,
     backgroundColor: colors.feltDark,
     color: colors.textPrimary,
   },

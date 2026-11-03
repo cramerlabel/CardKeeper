@@ -1,4 +1,6 @@
-import { StyleSheet, Text, View, type StyleProp, type ViewStyle } from 'react-native';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { useEffect, useRef, useState } from 'react';
+import { Animated, StyleSheet, Text, View, type StyleProp, type ViewStyle } from 'react-native';
 
 import { Card } from '@/components/Card';
 import { colors, radius, spacing, typography } from '@/theme';
@@ -27,9 +29,25 @@ export function ScorePanel({
   style,
 }: ScorePanelProps) {
   const scale = useTextScale();
-  const scoreSize = dense ? 36 : scale(typography.display.fontSize);
-  const scoreLine = dense ? 42 : scale(typography.display.lineHeight);
+  const scoreSize = dense ? 30 : scale(typography.display.fontSize);
+  const scoreLine = dense ? 34 : scale(typography.display.lineHeight);
   const percent = Math.round(progressFraction(total, target) * 100);
+
+  const [pulse] = useState(() => new Animated.Value(1));
+  const [progress] = useState(() => new Animated.Value(percent));
+  const previousTotal = useRef(total);
+
+  // Pulse the score when it changes (not on first render) and glide the progress bar to its new fill.
+  useEffect(() => {
+    if (previousTotal.current !== total) {
+      previousTotal.current = total;
+      Animated.sequence([
+        Animated.timing(pulse, { toValue: 1.15, duration: 140, useNativeDriver: true }),
+        Animated.spring(pulse, { toValue: 1, friction: 4, useNativeDriver: true }),
+      ]).start();
+    }
+    Animated.timing(progress, { toValue: percent, duration: 400, useNativeDriver: false }).start();
+  }, [total, percent, pulse, progress]);
 
   return (
     <Card
@@ -46,26 +64,36 @@ export function ScorePanel({
         >
           {name}
         </Text>
-        {leading ? <Text style={styles.badge}>LEADING</Text> : null}
+        {leading ? (
+          <View style={styles.badge} importantForAccessibility="no-hide-descendants">
+            <MaterialCommunityIcons name="crown" size={scale(14)} color={colors.textOnAccent} />
+          </View>
+        ) : null}
       </View>
-      <Text
+      <Animated.Text
         style={[
           styles.score,
-          { fontSize: scoreSize, lineHeight: scoreLine },
+          { fontSize: scoreSize, lineHeight: scoreLine, transform: [{ scale: pulse }] },
           leading && styles.scoreLeading,
         ]}
         adjustsFontSizeToFit
         numberOfLines={1}
       >
         {total}
-      </Text>
+      </Animated.Text>
       <View
         style={styles.track}
         accessibilityRole="progressbar"
         accessibilityLabel={`Progress toward ${target}`}
         accessibilityValue={{ min: 0, max: 100, now: percent }}
       >
-        <View style={[styles.fill, leading && styles.fillLeading, { width: `${percent}%` }]} />
+        <Animated.View
+          style={[
+            styles.fill,
+            leading && styles.fillLeading,
+            { width: progress.interpolate({ inputRange: [0, 100], outputRange: ['0%', '100%'] }) },
+          ]}
+        />
       </View>
       <Text style={[styles.meta, { fontSize: scale(typography.caption.fontSize) }]}>
         {handsWon} {handsWon === 1 ? 'hand' : 'hands'} won · to {target}
@@ -97,14 +125,9 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
   },
   badge: {
-    ...typography.label,
-    fontSize: 10,
-    color: colors.textOnAccent,
     backgroundColor: colors.gold,
     borderRadius: radius.pill,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xxs,
-    overflow: 'hidden',
+    padding: spacing.xs,
   },
   score: {
     color: colors.textPrimary,

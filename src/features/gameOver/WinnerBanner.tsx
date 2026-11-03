@@ -1,10 +1,10 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
 import { useEffect, useState } from 'react';
 import { Animated, Easing, StyleSheet, Text, View } from 'react-native';
 
 import { useResponsive } from '@/hooks/useResponsive';
 import { colors, radius, spacing, typography } from '@/theme';
+import { haptics } from '@/utils/haptics';
 
 import { useTextScale } from '@/features/scoreboard/useTextScale';
 
@@ -21,7 +21,7 @@ export function WinnerBanner({ headline, subline, hasChampion }: WinnerBannerPro
   const [pop] = useState(() => new Animated.Value(0));
 
   useEffect(() => {
-    void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    haptics.success();
     Animated.spring(pop, {
       toValue: 1,
       friction: 5,

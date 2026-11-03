@@ -1,6 +1,8 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist, type StateStorage } from 'zustand/middleware';
 
+import { createSafeStorage } from '@/storage/safeStorage';
+
 import { InvalidHandError, createHandRecord, type HandInput } from '../engine';
 import {
   MAX_HISTORY,
@@ -113,7 +115,7 @@ export function createGinStore(storage: StateStorage) {
       {
         name: STORAGE_KEY,
         version: STORAGE_VERSION,
-        storage: createJSONStorage(() => storage),
+        storage: createJSONStorage(() => createSafeStorage(storage)),
         partialize: (state): GinState => ({
           currentGame: state.currentGame,
           history: state.history,

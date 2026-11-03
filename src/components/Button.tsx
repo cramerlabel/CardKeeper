@@ -1,7 +1,9 @@
-import * as Haptics from 'expo-haptics';
-import { Pressable, StyleSheet, Text, type StyleProp, type ViewStyle } from 'react-native';
+import { StyleSheet, Text, type StyleProp, type ViewStyle } from 'react-native';
 
 import { colors, radius, spacing, typography } from '@/theme';
+import { haptics } from '@/utils/haptics';
+
+import { PressableScale } from './PressableScale';
 
 interface ButtonProps {
   label: string;
@@ -14,39 +16,44 @@ interface ButtonProps {
 export function Button({ label, onPress, variant = 'primary', disabled, style }: ButtonProps) {
   const primary = variant === 'primary';
   return (
-    <Pressable
+    <PressableScale
       accessibilityRole="button"
       accessibilityState={{ disabled: !!disabled }}
       disabled={disabled}
       onPress={() => {
-        void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        haptics.tap();
         onPress();
       }}
-      style={({ pressed }) => [
+      pressedStyle={styles.pressed}
+      style={[
         styles.base,
         primary ? styles.primary : styles.secondary,
-        pressed && styles.pressed,
         disabled && styles.disabled,
         style,
       ]}
     >
-      <Text style={[styles.label, { color: primary ? colors.textOnAccent : colors.textPrimary }]}>
+      <Text
+        numberOfLines={1}
+        adjustsFontSizeToFit
+        minimumFontScale={0.8}
+        style={[styles.label, { color: primary ? colors.textOnAccent : colors.textPrimary }]}
+      >
         {label}
       </Text>
-    </Pressable>
+    </PressableScale>
   );
 }
 
 const styles = StyleSheet.create({
   base: {
     minHeight: 48,
-    paddingHorizontal: spacing.xl,
+    paddingHorizontal: spacing.lg,
     borderRadius: radius.pill,
     alignItems: 'center',
     justifyContent: 'center',
   },
   primary: { backgroundColor: colors.gold },
-  secondary: { borderWidth: 1.5, borderColor: colors.border, backgroundColor: 'transparent' },
+  secondary: { borderWidth: 1.5, borderColor: colors.borderStrong, backgroundColor: 'transparent' },
   pressed: { opacity: 0.8 },
   disabled: { opacity: 0.4 },
   label: { ...typography.bodyStrong },

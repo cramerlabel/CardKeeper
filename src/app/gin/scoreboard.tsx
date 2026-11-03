@@ -5,6 +5,7 @@ import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Button } from '@/components/Button';
 import { ScreenContainer } from '@/components/ScreenContainer';
+import { openRules } from '@/features/rules/openRules';
 import { GameMenu, type MenuAction } from '@/features/scoreboard/GameMenu';
 import { HandHistory } from '@/features/scoreboard/HandHistory';
 import { ScorePanel } from '@/features/scoreboard/ScorePanel';
@@ -29,7 +30,7 @@ export default function GinScoreboardScreen() {
   const undoLastHand = useGinStore((s) => s.undoLastHand);
   const finishGame = useGinStore((s) => s.finishGame);
   const abandonGame = useGinStore((s) => s.abandonGame);
-  const { isLandscape, sizeClass, isDense: dense } = useResponsive();
+  const { isLandscape, isDense: dense } = useResponsive();
   const scale = useTextScale();
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -53,7 +54,7 @@ export default function GinScoreboardScreen() {
 
   const hasHands = game.hands.length > 0;
   const leader = leaderOf(totals);
-  const sideBySide = isLandscape || sizeClass === 'expanded';
+  const sideBySide = isLandscape;
 
   const confirmUndo = () => {
     const last = game.hands[game.hands.length - 1];
@@ -83,6 +84,7 @@ export default function GinScoreboardScreen() {
     { key: 'undo', label: 'Undo last hand', onPress: confirmUndo, disabled: !hasHands },
     { key: 'end', label: 'End game now', onPress: confirmEnd, disabled: !hasHands },
     { key: 'abandon', label: 'Abandon game', onPress: confirmAbandon, destructive: true },
+    { key: 'rules', label: 'How to play', onPress: () => openRules('ginRummy') },
     { key: 'home', label: 'Back to menu', onPress: goHome },
   ];
 
@@ -166,15 +168,15 @@ const styles = StyleSheet.create({
   container: { gap: spacing.md },
   header: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   iconButton: {
-    width: 44,
-    height: 44,
+    width: 48,
+    height: 48,
     alignItems: 'center',
     justifyContent: 'center',
   },
   titleBlock: { flex: 1 },
   title: { fontWeight: typography.heading.fontWeight, color: colors.textPrimary },
   subtitle: { ...typography.caption, color: colors.textSecondary },
-  headerAdd: { minHeight: 40, paddingHorizontal: spacing.lg },
+  headerAdd: { minHeight: 48, paddingHorizontal: spacing.lg },
   panelSlot: { flex: 1 },
   panelsRow: { flexDirection: 'row', gap: spacing.md },
   historyPortrait: { flex: 1 },

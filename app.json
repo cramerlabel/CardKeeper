@@ -22,6 +22,7 @@
       "versionCode": 1
     },
     "plugins": [
+      "./plugins/withReleaseSigning",
       "expo-router",
       "expo-font",
       [

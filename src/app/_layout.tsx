@@ -1,3 +1,4 @@
+import { useKeepAwake } from 'expo-keep-awake';
 import { Stack, type ErrorBoundaryProps } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
@@ -27,6 +28,8 @@ export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
 }
 
 export default function RootLayout() {
+  useKeepAwake();
+
   return (
     <SafeAreaProvider>
       <StatusBar style="light" />

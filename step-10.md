@@ -24,4 +24,8 @@ Produce a release `.apk` that can be side-loaded onto Android phones and tablets
 - README documents build and sideload.
 
 ## Handoff notes (fill in when done)
-- APK path, version, keystore location, remaining ideas (add more games, iOS, Play Store AAB): _TBD_
+- APK: `dist/CardKeeper-1.0.0.apk` (git-ignored; 67 MB, arm64-v8a + armeabi-v7a + x86_64), version `1.0.0` / versionCode `1`, signed with the release key (SHA-256 `11:8E:47:87:…:8E:3E:B9`).
+- Keystore: `~/keystores/cardkeeper.jks` (alias `cardkeeper`); credentials in `~/.gradle/gradle.properties` (`CARDKEEPER_*`). **Back both up — losing them blocks updates.**
+- `android/` stays git-ignored; `plugins/withReleaseSigning.js` re-applies signing config and ABI list on every prebuild.
+- Verified on emulator-5554 with no Metro: launch, new game, add hand, kill/restart resume ("Continue game"), landscape rotation. Full gin/big gin/undercut run-through was not repeated in release (covered by unit tests and Step 8 QA).
+- Remaining ideas: more games (Hearts/Spades/Euchre), iOS build, Play Store AAB (`./gradlew bundleRelease`), per-ABI APK splits to shrink size.

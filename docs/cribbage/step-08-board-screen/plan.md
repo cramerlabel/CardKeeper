@@ -1,0 +1,40 @@
+# Step 8 — Board screen (main game screen) and going live
+
+Read [../plan.md](../plan.md) first, then the Handoffs of steps [2](../step-02-store/plan.md), [4](../step-04-rules-and-shared-ui/plan.md), [6](../step-06-board-component/plan.md), [7](../step-07-score-entry/plan.md).
+
+## Context from previous steps
+- `CribbageBoard` component (step 6), score entry route and params (step 7), store (step 2), saved-games home wiring and `ContinueGameCard` (step 4), setup (step 5).
+- Reference screen: `src/app/gin/scoreboard.tsx` plus `src/features/scoreboard/{ScorePanel,HandHistory,GameMenu,history,useTextScale}`: focus-based redirect to game-over, hydration guard, responsive portrait/landscape layouts, menu, confirmations.
+- `/cribbage/game-over` is built in step 9. Until then the redirect target is missing: use `router.replace('/cribbage/game-over' as never)`; to avoid a dead end, this step temporarily may leave a finished game on the board — **step 9 adds the redirect check**. Implement the focus redirect now exactly like gin (it only fires when a game finishes).
+- Registry entry `cribbage` is `available: false`; this step flips it.
+
+## Goal
+`src/app/cribbage/board.tsx`: the playing screen.
+
+## Tasks
+1. Header: back chevron, "Cribbage", subtitle "Deal N · first to 121", menu button.
+2. Board area: `CribbageBoard` fed by `selectPegs`, `selectDealer`, names, config. Portrait: board on top (takes ~50% height, vertical board), panels below. Landscape: board left, panels + history right. Tablets scale up.
+3. Player panels (adapt `ScorePanel` or make `CribbagePlayerPanel`): name, total, "Dealer · crib" badge, "+ Score" button opening `/cribbage/score?player=<i>`; leader highlight; 2 or 3 panels.
+4. History: events grouped under "Deal N" headers (newest first); row = kind label, player, `+points`, running total; tap opens `/cribbage/score?eventId=<id>`. Pure builder `src/features/cribbageHistory/history.ts` + test (running totals per player, grouping, labels).
+5. Primary actions: "Add score" (opens entry with no preselection) and "Next deal" (confirmation only if no scores recorded this deal; advances dealer, updates crib indicator).
+6. Menu (`GameMenu`): Undo last score, End game now, Abandon game, How to play (`openRules('cribbage')`), Back to menu — with the same confirmations as gin.
+7. Focus redirect to `/cribbage/game-over` when `status === 'finished'`; `Redirect` home when no game; hydration guard.
+8. Go live: set `available: true` for `cribbage` in `src/games/registry.ts`; confirm home grid opens `/cribbage/setup`; confirm the home "Continue game" card for cribbage works (steps 4 wiring) incl. 3 players; update `README.md` intro ("Gin Rummy and Cribbage are playable…") and the registry/step docs as needed.
+9. Text scale: respect `useTextScale`/large fonts (`maxFontSizeMultiplier`) and test with font scale 1.3/1.5 as in earlier QA.
+
+## Acceptance criteria
+- Full play loop: setup -> add scores -> pegs move/animate, dealer rotates on Next deal -> edit/delete -> undo -> end game / abandon; saved game resumes after app restart with identical pegs.
+- No scrolling needed for board + panels + Add score on a 360x740 phone in portrait; history scrolls independently.
+- Pure history builder tests green.
+
+## Verify
+`npm run lint && npm run typecheck && npm test`; emulator walkthrough for 2 and 3 players, portrait + landscape, phone + tablet.
+
+## Handoff (fill in when done)
+- Files created/changed:
+- Layout breakpoints/decisions:
+- Anything the game-over screen needs (selectors/routes):
+- Known issues:
+- Updates made to later step plans:
+
+**Before ending:** update `step-09-game-over/plan.md` and `step-10-qa-and-release/plan.md`; commit `Cribbage step 8: board screen`.

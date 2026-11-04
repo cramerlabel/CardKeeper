@@ -3,7 +3,7 @@
 Read [../plan.md](../plan.md) first, then the Handoff of [step 3](../step-03-board-geometry/plan.md) (and step 1 for `pegPositions`).
 
 ## Context from previous steps
-- Geometry API from step 3 (`buildBoard`, `pegPoint`, `pegPathPoints`, lane keys).
+- Geometry API from step 3 (`src/features/cribbageBoard/geometry.ts`): `buildBoard({ width, height, playerCount, config })` returns `BoardGeometry`; `pegPoint(board, lane, position)` clamps/interpolates a score; `pegPathPoints(board, lane, from, to)` returns sampled positions including endpoints and supports reverse/fractional moves. `LANE_COLOR_KEYS` is `['red', 'blue', 'green']`. `lanes[lane].holes[0]` is the off-track start; `holes[1..target]` are score holes. `gameHole` is the center of the per-lane target holes, so render each lane's target from `lanes[lane].holes[target]`.
 - `react-native-svg` installed (step 1). Check SDK 58 docs for its API before use: `https://docs.expo.dev/versions/v58.0.0/sdk/svg/`.
 - Peg data comes from `pegPositions(events, ctx)` = `{ front, back }[]` per player (selector `selectPegs`).
 - No screen consumes this yet (step 8 does). Verify with unit tests plus a **temporary** dev harness (e.g. a throwaway route you delete before committing, or a Jest render test) — do not leave harness code in the repo.

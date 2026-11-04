@@ -33,11 +33,11 @@ Compute everything needed to draw a continuous racetrack cribbage board and move
 `npm run lint && npm run typecheck && npm test -- cribbageBoard`
 
 ## Handoff (fill in when done)
-- Files created:
-- Final geometry API (types + function signatures):
-- How the 61-point game is laid out:
-- Hole/peg size minimums chosen:
-- Gotchas:
-- Updates made to later step plans:
+- Files created: `src/features/cribbageBoard/geometry.ts`, `geometry.test.ts`.
+- Final geometry API: `LANE_COLOR_KEYS` (`['red', 'blue', 'green']`), `buildBoard({ width, height, playerCount, config })`, `pegPoint(board, lane, position)`, and `pegPathPoints(board, lane, from, to)`. Types exported: `LaneColorKey`, `BoardOrientation`, `Point`, `BoardLane`, `SkunkMark`, `BoardGeometry`, and `BuildBoardOptions`.
+- How the 61-point game is laid out: it uses the same one-lap stadium footprint with 61 score holes (plus the start point) distributed around the track. The wider spacing increases the hole radius; there is no second lap.
+- Hole/peg size minimums chosen: peg radius is at least 7dp (14dp diameter), scaling up to 10dp; holes shrink with spacing and have a 1dp minimum radius.
+- Gotchas: `lanes[*].holes[0]` is the off-track start point and indices `1..target` are the score holes. `gameHole` is the center of the per-lane target holes; peg destinations are `lanes[lane].holes[target]`. Both peg helpers clamp out-of-range positions; `pegPathPoints` also supports reverse and fractional positions. Invalid/non-fitting dimensions throw `RangeError`.
+- Updates made to later step plans: step 6 now records the real geometry API and target-hole semantics.
 
 **Before ending:** update `step-06-board-component/plan.md` with the real API; commit `Cribbage step 3: board geometry`.

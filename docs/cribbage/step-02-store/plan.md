@@ -35,11 +35,19 @@ A persisted `useCribbageStore` with the actions/selectors from the overview cont
 ## Verify
 `npm run lint && npm run typecheck && npm test -- cribbage`
 
-## Handoff (fill in when done)
-- Files created:
-- Final store API (actions, selectors, hooks) and deviations from the contract:
-- Behaviour notes (deal handling on delete/undo, auto-finish, history):
+## Handoff
+- Files created: `src/games/cribbage/store/{types,persistence,selectors,createCribbageStore,index}.ts`, `createCribbageStore.test.ts` (21 tests).
+- Final store API (matches the contract; deviations marked +):
+  - Hooks/exports from `@/games/cribbage/store`: `useCribbageStore`, `useCribbageHydrated`, `createCribbageStore`, selectors `selectTotals`, `selectPegs`, `selectResult` (`GameResult | null`), `selectDealer` (`PlayerIndex | null`), `selectContext` (`GameContext | null`), `selectIsGameOver`, `selectHasSavedGame`; types `ActionResult`, `CribbageGame`, `CribbageStore`, `GameStatus`, `NewScoreInput`, `StartGameOptions`. `ActionResult`/`GameStatus` are redefined locally (not shared with gin).
+  - Actions: `startGame({names,target,firstDealer})` (+ returns `ActionResult`), `addScore(NewScoreInput)` (`deal` optional), `updateScore(id, ScoreInput)`, `deleteScore(id)`, `undoLastScore()`, `nextDeal()` (+ `ActionResult`), `finishGame()` (+ `ActionResult`), `abandonGame()`, `clear()`. `persistence.ts` also exports `STORAGE_KEY`, `STORAGE_VERSION`, `MAX_HISTORY`, `buildContext`, `deriveStatus`, `sanitizePersistedState`, `migrateState`.
+- Behaviour notes:
+  - `deal` is only ever raised: `max(game.deal, highest event deal)` after add/update/delete/undo; Undo/delete never decrement it. `nextDeal` is the only way to increment it besides an explicit later `deal` on an event.
+  - Auto-finish when a player reaches the target; the game is added to `history` (newest first, cap 20) and removed again if an edit/undo/delete reopens it. `finishGame` ends early (status `finished`, `selectIsGameOver` stays false). Edits/deletes/undo always reopen unless the target is still reached.
+  - `updateScore`/`deleteScore`/`undoLastScore` rebuild via `rebuildEvents` (renumber, truncate after the win; dropped events are gone). Validation failures leave state untouched.
+  - Hydration re-validates everything (player count, target, dealer range, deal, event kinds, engine rules) and drops an unusable game; extra stored fields and stored `number`s are ignored.
 - Gotchas:
-- Updates made to later step plans:
+  - Selectors memoise by `game.events` identity (WeakMap); `selectContext` is a shared object per (playerCount, firstDealer, target) via `buildContext`. Never create new arrays/objects inside a zustand selector.
+  - `nextDeal` keeps the same `events` array, so board selectors do not recompute.
+- Updates made to later step plans: real store API notes added to "Context from previous steps" of steps 4, 5, 7, 8, 9.
 
 **Before ending:** update `step-04`, `step-05`, `step-07`, `step-08`, `step-09` plans with the real store API; commit `Cribbage step 2: store`.

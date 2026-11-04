@@ -7,6 +7,7 @@ Read [../plan.md](../plan.md) first, then the Handoffs of steps [2](../step-02-s
 - Board screen redirects to `/cribbage/game-over` when the game finishes (step 8).
 - Reference: `src/app/gin/game-over.tsx`, `src/features/gameOver/{WinnerBanner,ScoreBreakdown,summary}.ts*` and `summary.test.ts`.
 - Register in `src/app/_layout.tsx`: `<Stack.Screen name="cribbage/game-over" options={{ animation: 'fade' }} />`.
+- Real store API (step 2): `finishGame()` requires ≥1 event and returns `ActionResult`; a game reaching the target auto-finishes and is pushed to `history` (newest first, max 20). `selectResult(state)` is `GameResult | null` (stable per events array); `selectIsGameOver` is false for early-finished games, so use `currentGame.status === 'finished'` plus `result.winner` (may be `null` when ended early with nobody at target — check this).
 
 ## Goal
 Celebrate the result, show final positions on the board, and offer next actions.

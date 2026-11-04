@@ -8,6 +8,7 @@ Read [../plan.md](../plan.md) first, then the Handoffs of steps [1](../step-01-e
 - Home screen (`src/app/index.tsx`) and `ContinueGameCard` currently hard-wire gin and exactly 2 players.
 - `src/features/setup/playerNames.ts` and `NameField` (inside `src/app/gin/setup.tsx`) are 2-player/gin-specific.
 - `src/app/_layout.tsx` ErrorBoundary only clears the gin store.
+- Real store API (step 2): `useCribbageStore.getState().clear()` exists for the ErrorBoundary; `selectHasSavedGame(state)` is true only for an `inProgress` current game; `currentGame` shape is `CribbageGame` (`players: string[]`, `target`, `firstDealer`, `deal`, `events`, `status`). Import everything from `@/games/cribbage/store`.
 
 ## Goal
 Everything that must exist before building cribbage screens, without making Cribbage playable yet (registry entry stays `available: false`, so the card shows "coming soon" + rules, and nothing links to missing routes).

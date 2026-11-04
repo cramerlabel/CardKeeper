@@ -7,6 +7,7 @@ Read [../plan.md](../plan.md) first, then the Handoffs of steps [2](../step-02-s
 - Reference screen: `src/app/gin/scoreboard.tsx` plus `src/features/scoreboard/{ScorePanel,HandHistory,GameMenu,history,useTextScale}`: focus-based redirect to game-over, hydration guard, responsive portrait/landscape layouts, menu, confirmations.
 - `/cribbage/game-over` is built in step 9. Until then the redirect target is missing: use `router.replace('/cribbage/game-over' as never)`; to avoid a dead end, this step temporarily may leave a finished game on the board — **step 9 adds the redirect check**. Implement the focus redirect now exactly like gin (it only fires when a game finishes).
 - Registry entry `cribbage` is `available: false`; this step flips it.
+- Real store API (step 2): `nextDeal()` returns `ActionResult` (fails when finished) and only increments `currentGame.deal` (events array identity unchanged); dealer = `selectDealer`. Scores belonging to the current deal: `events.filter(e => e.deal === game.deal)`. `undoLastScore`, `deleteScore`, `finishGame` (requires ≥1 event) return `ActionResult`; `abandonGame`/`clear` return void. `deal` never drops below the highest event deal after delete/undo (it is not decremented, so Undo does not step the dealer back). Selectors: `selectTotals`, `selectPegs`, `selectResult` (null without a game), `selectDealer`, `selectContext`, `selectIsGameOver` (target reached, not early finish), `selectHasSavedGame`. Hook `useCribbageHydrated()` gates reading `currentGame`.
 
 ## Goal
 `src/app/cribbage/board.tsx`: the playing screen.

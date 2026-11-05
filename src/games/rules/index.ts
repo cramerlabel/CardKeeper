@@ -1,3 +1,4 @@
+import { cribbageRules } from './cribbage';
 import { euchreRules } from './euchre';
 import { ginRummyRules } from './ginRummy';
 import { heartsRules } from './hearts';
@@ -9,6 +10,7 @@ export type { GameRules, RulesSection, ScoreRow } from './types';
 /** Rules content keyed by game id; every game in the registry must have an entry. */
 const rulesByGame: Record<string, GameRules> = {
   ginRummy: ginRummyRules,
+  cribbage: cribbageRules,
   hearts: heartsRules,
   spades: spadesRules,
   euchre: euchreRules,

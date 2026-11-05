@@ -1,15 +1,19 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { Fragment } from 'react';
 import { Alert, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 
 import { Button } from '@/components/Button';
 import { Card } from '@/components/Card';
+import { formatNameList } from '@/features/home/savedGames';
 import { colors, spacing, typography } from '@/theme';
 
 interface ContinueGameCardProps {
   gameName: string;
-  players: readonly [string, string];
-  totals: readonly [number, number];
-  handCount: number;
+  /** 2–3 players; `totals` is in the same order. */
+  players: readonly string[];
+  totals: readonly number[];
+  /** Short progress text such as "3 hands played". */
+  progressLabel: string;
   onContinue: () => void;
   onDiscard: () => void;
 }
@@ -18,7 +22,7 @@ export function ContinueGameCard({
   gameName,
   players,
   totals,
-  handCount,
+  progressLabel,
   onContinue,
   onDiscard,
 }: ContinueGameCardProps) {
@@ -28,14 +32,12 @@ export function ContinueGameCard({
   const confirmDiscard = () =>
     Alert.alert(
       'Discard game?',
-      `The in-progress ${gameName} game between ${players[0]} and ${players[1]} will be deleted. This can't be undone.`,
+      `The in-progress ${gameName} game between ${formatNameList(players)} will be deleted. This can't be undone.`,
       [
         { text: 'Keep game', style: 'cancel' },
         { text: 'Discard', style: 'destructive', onPress: onDiscard },
       ],
     );
-
-  const handsLabel = `${handCount} ${handCount === 1 ? 'hand' : 'hands'} played`;
 
   return (
     <Card style={styles.card}>
@@ -47,23 +49,21 @@ export function ContinueGameCard({
       <View
         style={styles.scoreRow}
         accessible
-        accessibilityLabel={`${players[0]} ${totals[0]}, ${players[1]} ${totals[1]}. ${handsLabel}.`}
+        accessibilityLabel={`${players.map((p, i) => `${p} ${totals[i]}`).join(', ')}. ${progressLabel}.`}
       >
-        <View style={styles.player}>
-          <Text style={styles.playerName} numberOfLines={1}>
-            {players[0]}
-          </Text>
-          <Text style={styles.score}>{totals[0]}</Text>
-        </View>
-        <Text style={styles.vs}>vs</Text>
-        <View style={styles.player}>
-          <Text style={styles.playerName} numberOfLines={1}>
-            {players[1]}
-          </Text>
-          <Text style={styles.score}>{totals[1]}</Text>
-        </View>
+        {players.map((name, i) => (
+          <Fragment key={i}>
+            {i > 0 && players.length === 2 && <Text style={styles.vs}>vs</Text>}
+            <View style={styles.player}>
+              <Text style={styles.playerName} numberOfLines={1}>
+                {name}
+              </Text>
+              <Text style={styles.score}>{totals[i]}</Text>
+            </View>
+          </Fragment>
+        ))}
       </View>
-      <Text style={styles.meta}>{handsLabel}</Text>
+      <Text style={styles.meta}>{progressLabel}</Text>
       <View style={[styles.actions, stackActions && styles.actionsStacked]}>
         <Button
           label="Continue"

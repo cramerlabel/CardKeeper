@@ -3,7 +3,7 @@
 Read [../plan.md](../plan.md) first, then the Handoffs of steps [2](../step-02-store/plan.md), [4](../step-04-rules-and-shared-ui/plan.md), [6](../step-06-board-component/plan.md), [7](../step-07-score-entry/plan.md).
 
 ## Context from previous steps
-- `CribbageBoard` component (step 6), score entry route and params (step 7), store (step 2), saved-games home wiring and `ContinueGameCard` (step 4), setup (step 5).
+- `CribbageBoard` component (step 6), score entry route and params (step 7), store (step 2), saved-games home wiring and `ContinueGameCard` (step 4; real API: `buildSavedGames` in `src/features/home/savedGames.ts` already includes cribbage with route `/cribbage/board` and `Deal N` label, and `src/app/index.tsx` already wires cribbage continue/discard — only `available: true` and the registry test remain), setup (step 5).
 - Reference screen: `src/app/gin/scoreboard.tsx` plus `src/features/scoreboard/{ScorePanel,HandHistory,GameMenu,history,useTextScale}`: focus-based redirect to game-over, hydration guard, responsive portrait/landscape layouts, menu, confirmations.
 - `/cribbage/game-over` is built in step 9. Until then the redirect target is missing: use `router.replace('/cribbage/game-over' as never)`; to avoid a dead end, this step temporarily may leave a finished game on the board — **step 9 adds the redirect check**. Implement the focus redirect now exactly like gin (it only fires when a game finishes).
 - Registry entry `cribbage` is `available: false`; this step flips it.

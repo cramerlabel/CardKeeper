@@ -1,66 +1,28 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
-import { useEffect, useRef, useState, type Ref } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   Alert,
   KeyboardAvoidingView,
   StyleSheet,
   Text,
-  TextInput,
   View,
   type TextInputInstance,
-  type TextInputProps,
 } from 'react-native';
 
 import { Button } from '@/components/Button';
 import { Card } from '@/components/Card';
 import { ScreenContainer } from '@/components/ScreenContainer';
 import { openRules } from '@/features/rules/openRules';
+import { NameField } from '@/features/setup/NameField';
 import {
-  MAX_NAME_LENGTH,
   defaultName,
   loadLastNames,
   saveLastNames,
   validateNames,
 } from '@/features/setup/playerNames';
 import { selectHasSavedGame, useGinHydrated, useGinStore } from '@/games/ginRummy/store';
-import { colors, radius, spacing, typography } from '@/theme';
-
-interface NameFieldProps extends Pick<TextInputProps, 'returnKeyType' | 'onSubmitEditing'> {
-  label: string;
-  value: string;
-  placeholder: string;
-  error: string | null;
-  onChangeText: (text: string) => void;
-  inputRef?: Ref<TextInputInstance>;
-}
-
-function NameField({ label, value, placeholder, error, inputRef, ...input }: NameFieldProps) {
-  return (
-    <View style={styles.field}>
-      <Text style={styles.label}>{label}</Text>
-      <TextInput
-        ref={inputRef}
-        value={value}
-        placeholder={placeholder}
-        placeholderTextColor={colors.textSecondary}
-        maxLength={MAX_NAME_LENGTH}
-        autoCapitalize="words"
-        autoCorrect={false}
-        selectionColor={colors.gold}
-        accessibilityLabel={label}
-        accessibilityHint={`Leave empty to use ${placeholder}`}
-        style={[styles.input, error ? styles.inputError : null]}
-        {...input}
-      />
-      {error ? (
-        <Text style={styles.error} accessibilityRole="alert">
-          {error}
-        </Text>
-      ) : null}
-    </View>
-  );
-}
+import { colors, spacing, typography } from '@/theme';
 
 export default function GinSetupScreen() {
   const hydrated = useGinHydrated();
@@ -155,19 +117,5 @@ const styles = StyleSheet.create({
   container: { justifyContent: 'center', gap: spacing.lg },
   title: { ...typography.title, color: colors.textPrimary },
   card: { gap: spacing.lg },
-  field: { gap: spacing.xs },
-  label: { ...typography.label, color: colors.textSecondary, textTransform: 'uppercase' },
-  input: {
-    ...typography.body,
-    minHeight: 48,
-    paddingHorizontal: spacing.md,
-    borderRadius: radius.md,
-    borderWidth: 1.5,
-    borderColor: colors.borderStrong,
-    backgroundColor: colors.feltDark,
-    color: colors.textPrimary,
-  },
-  inputError: { borderColor: colors.danger },
-  error: { ...typography.caption, color: colors.danger },
   actions: { gap: spacing.md },
 });

@@ -4,7 +4,7 @@ Read [../plan.md](../plan.md) first, then the Handoffs of steps [2](../step-02-s
 
 ## Context from previous steps
 - Store: `useCribbageStore.startGame({ names, target, firstDealer })`, `selectHasSavedGame`, `useCribbageHydrated`.
-- Shared: `NameField` (`src/features/setup/NameField.tsx`), list-based name helpers with the cribbage storage key, `SegmentedControl`, `Button`, `Card`, `ScreenContainer`.
+- Shared (step 4, real API): `NameField` (`src/features/setup/NameField.tsx`, props `{ label, value, placeholder, error, onChangeText, inputRef?, returnKeyType?, onSubmitEditing? }`); from `@/features/setup/playerNames`: `validateNameList(raw) => { valid, errors, names }`, `loadLastNameList(AsyncStorage, CRIBBAGE_NAMES_STORAGE_KEY)`, `saveLastNameList(names, AsyncStorage, CRIBBAGE_NAMES_STORAGE_KEY)`, `defaultName(index)`, `MAX_NAME_LENGTH`; `SegmentedControl`, `Button`, `Card`, `ScreenContainer`.
 - Reference screen: `src/app/gin/setup.tsx` (keyboard handling, saved-game guard, rules link, last-names prefill).
 - Cribbage is still `available: false` in the registry, so this route is not reachable from the home grid yet; test by navigating directly (`npx expo start` + deep link `cardkeeper://cribbage/setup`, or temporarily via URL in dev). Do **not** flip `available` here.
 - `/cribbage/board` does not exist until step 8; navigate with `router.replace('/cribbage/board' as never)`.

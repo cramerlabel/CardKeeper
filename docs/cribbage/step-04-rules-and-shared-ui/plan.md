@@ -31,11 +31,15 @@ Everything that must exist before building cribbage screens, without making Crib
 ## Verify
 `npm run lint && npm run typecheck && npm test`
 
-## Handoff (fill in when done)
-- Files created/changed:
-- Final signatures of `ContinueGameCard`, saved-games builder, name helpers, `NameField`:
-- Icon chosen:
-- Gotchas:
-- Updates made to later step plans:
+## Handoff
+- Files created: `src/games/rules/cribbage.ts` (numbers from `STANDARD_CONFIG`/`SHORT_CONFIG`/`HEELS_POINTS`/`MAX_EVENT_POINTS`), `src/features/home/savedGames.ts` (+ test), `src/features/setup/NameField.tsx`. Changed: `rules/index.ts`, `rules.test.ts` (cribbage sync check), `registry.ts`, `ContinueGameCard.tsx`, `src/app/index.tsx`, `src/app/gin/setup.tsx`, `src/app/_layout.tsx`, `features/setup/playerNames.ts` (+ test).
+- Final signatures:
+  - `ContinueGameCard({ gameName, players: readonly string[], totals: readonly number[], progressLabel: string, onContinue, onDiscard })` — `handCount` was replaced by a ready-made `progressLabel`; "vs" is shown only for 2 players; the discard alert and accessibility label list all players.
+  - `src/features/home/savedGames.ts`: `buildSavedGames({ ginRummy: { players, totals, handCount } | null, cribbage: { players, totals, deal } | null }): SavedGameSummary[]` (`{ gameId: 'ginRummy' | 'cribbage', gameName, players, totals, progressLabel, continueRoute }`, gin first; cribbage label is `Deal N`, route `/cribbage/board`), `formatNameList(names)`, type `SavedGameId`. The home screen passes `null` until the store is hydrated and only for `selectHasSavedGame` games, and maps `gameId` to the discard action (`abandonGame`).
+  - `playerNames.ts` additions (gin exports unchanged; `defaultName`/`effectiveName` now take `index: number`): `CRIBBAGE_NAMES_STORAGE_KEY` (`'card-keeper/cribbage/last-names'`), `MIN_LIST_PLAYERS`/`MAX_LIST_PLAYERS` (2/3), `validateNameList(raw: readonly string[]) => { valid, errors: (string | null)[], names: string[] }` (a name is flagged when an earlier field has it), `loadLastNameList(storage, key): Promise<string[] | null>` (2–3 strings only), `saveLastNameList(names, storage, key)`.
+  - `NameField` (`@/features/setup/NameField`, named export): props `{ label, value, placeholder, error, onChangeText, inputRef?, returnKeyType?, onSubmitEditing? }`; no visual change.
+- Icon chosen: `scoreboard-outline`.
+- Gotchas: cribbage stays `available: false` (registry test still expects only gin available), so the home cribbage "continue" card is wired but unreachable until step 8. `_layout.tsx` ErrorBoundary now clears both stores. The registry `description` for cribbage includes "2–3 players." as written in the plan.
+- Updates made to later step plans: step 5 and step 8 "Context from previous steps" now list the real helper signatures.
 
 **Before ending:** update `step-05-setup-screen/plan.md` and `step-08-board-screen/plan.md` with real signatures; commit `Cribbage step 4: rules, registry, shared UI`.

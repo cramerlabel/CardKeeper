@@ -1,9 +1,13 @@
 import {
+  CRIBBAGE_NAMES_STORAGE_KEY,
   MAX_NAME_LENGTH,
   NAMES_STORAGE_KEY,
   effectiveName,
+  loadLastNameList,
   loadLastNames,
+  saveLastNameList,
   saveLastNames,
+  validateNameList,
   validateNames,
 } from './playerNames';
 
@@ -67,5 +71,56 @@ describe('last-used names', () => {
     const storage = memoryStorage({ [NAMES_STORAGE_KEY]: JSON.stringify([long, 'B']) });
     const loaded = await loadLastNames(storage);
     expect(loaded?.[0]).toHaveLength(MAX_NAME_LENGTH);
+  });
+});
+
+describe('validateNameList', () => {
+  it('trims names and falls back to defaults for any count', () => {
+    const v = validateNameList([' Ann ', '', '  ']);
+    expect(v.valid).toBe(true);
+    expect(v.names).toEqual(['Ann', 'Player 2', 'Player 3']);
+    expect(v.errors).toEqual([null, null, null]);
+  });
+
+  it('flags a later name that repeats an earlier one, ignoring case', () => {
+    const v = validateNameList(['Sam', 'Bo', ' sAM ']);
+    expect(v.valid).toBe(false);
+    expect(v.errors).toEqual([null, null, expect.stringMatching(/different/)]);
+  });
+
+  it('flags a name that collides with another default', () => {
+    expect(validateNameList(['Player 3', '', '']).valid).toBe(false);
+  });
+
+  it('matches validateNames for two players', () => {
+    expect(validateNameList(['Sam', ' sAM ']).errors).toEqual(
+      validateNames(['Sam', ' sAM ']).errors,
+    );
+  });
+});
+
+describe('last-used name lists', () => {
+  const key = CRIBBAGE_NAMES_STORAGE_KEY;
+
+  it('round-trips two and three names under the given key', async () => {
+    const storage = memoryStorage();
+    await saveLastNameList(['Ann', 'Bob', 'Cy'], storage, key);
+    expect(await loadLastNameList(storage, key)).toEqual(['Ann', 'Bob', 'Cy']);
+    await saveLastNameList(['Ann', 'Bob'], storage, key);
+    expect(await loadLastNameList(storage, key)).toEqual(['Ann', 'Bob']);
+    expect(await loadLastNames(storage)).toBeNull();
+  });
+
+  it('returns null for missing, corrupt or wrongly sized data', async () => {
+    expect(await loadLastNameList(memoryStorage(), key)).toBeNull();
+    for (const bad of ['{oops', '["a",1]', '["a"]', '["a","b","c","d"]']) {
+      expect(await loadLastNameList(memoryStorage({ [key]: bad }), key)).toBeNull();
+    }
+  });
+
+  it('clamps over-long stored names', async () => {
+    const long = 'x'.repeat(50);
+    const storage = memoryStorage({ [key]: JSON.stringify([long, 'B', 'C']) });
+    expect((await loadLastNameList(storage, key))?.[0]).toHaveLength(MAX_NAME_LENGTH);
   });
 });

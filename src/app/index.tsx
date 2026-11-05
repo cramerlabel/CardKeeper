@@ -1,17 +1,25 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
+import { useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { ScreenContainer } from '@/components/ScreenContainer';
 import { ContinueGameCard } from '@/features/home/ContinueGameCard';
 import { GameGrid } from '@/features/home/GameGrid';
+import { buildSavedGames, type SavedGameId } from '@/features/home/savedGames';
 import {
-  selectHasSavedGame,
-  selectTotals,
+  selectHasSavedGame as selectHasSavedCribbage,
+  selectTotals as selectCribbageTotals,
+  useCribbageHydrated,
+  useCribbageStore,
+} from '@/games/cribbage/store';
+import {
+  selectHasSavedGame as selectHasSavedGin,
+  selectTotals as selectGinTotals,
   useGinHydrated,
   useGinStore,
 } from '@/games/ginRummy/store';
-import { games, getGame } from '@/games/registry';
+import { games } from '@/games/registry';
 import type { GameDefinition } from '@/games/types';
 import { openRules } from '@/features/rules/openRules';
 import { useResponsive } from '@/hooks/useResponsive';
@@ -26,10 +34,43 @@ export default function HomeScreen() {
     scale(typography.display.fontSize),
     (Math.min(width, height) / 360) * 44,
   );
-  const hydrated = useGinHydrated();
-  const hasSavedGame = useGinStore(selectHasSavedGame);
-  const currentGame = useGinStore((s) => s.currentGame);
-  const totals = useGinStore(selectTotals);
+  const ginHydrated = useGinHydrated();
+  const ginSaved = useGinStore(selectHasSavedGin);
+  const ginGame = useGinStore((s) => s.currentGame);
+  const ginTotals = useGinStore(selectGinTotals);
+  const cribbageHydrated = useCribbageHydrated();
+  const cribbageSaved = useCribbageStore(selectHasSavedCribbage);
+  const cribbageGame = useCribbageStore((s) => s.currentGame);
+  const cribbageTotals = useCribbageStore(selectCribbageTotals);
+
+  const savedGames = useMemo(
+    () =>
+      buildSavedGames({
+        ginRummy:
+          ginHydrated && ginSaved && ginGame
+            ? { players: ginGame.players, totals: ginTotals, handCount: ginGame.hands.length }
+            : null,
+        cribbage:
+          cribbageHydrated && cribbageSaved && cribbageGame
+            ? { players: cribbageGame.players, totals: cribbageTotals, deal: cribbageGame.deal }
+            : null,
+      }),
+    [
+      ginHydrated,
+      ginSaved,
+      ginGame,
+      ginTotals,
+      cribbageHydrated,
+      cribbageSaved,
+      cribbageGame,
+      cribbageTotals,
+    ],
+  );
+
+  const discardActions: Record<SavedGameId, () => void> = {
+    ginRummy: () => useGinStore.getState().abandonGame(),
+    cribbage: () => useCribbageStore.getState().abandonGame(),
+  };
   const hapticsEnabled = useSettingsStore((s) => s.hapticsEnabled);
   const setHapticsEnabled = useSettingsStore((s) => s.setHapticsEnabled);
 
@@ -80,18 +121,18 @@ export default function HomeScreen() {
         </Pressable>
       </View>
 
-      {hydrated && hasSavedGame && currentGame && (
-        <View style={styles.section}>
+      {savedGames.map((saved) => (
+        <View key={saved.gameId} style={styles.section}>
           <ContinueGameCard
-            gameName={getGame('ginRummy')?.name ?? 'Gin Rummy'}
-            players={currentGame.players}
-            totals={totals}
-            handCount={currentGame.hands.length}
-            onContinue={() => router.push('/gin/scoreboard' as never)}
-            onDiscard={() => useGinStore.getState().abandonGame()}
+            gameName={saved.gameName}
+            players={saved.players}
+            totals={saved.totals}
+            progressLabel={saved.progressLabel}
+            onContinue={() => router.push(saved.continueRoute as never)}
+            onDiscard={discardActions[saved.gameId]}
           />
         </View>
-      )}
+      ))}
 
       <Text style={styles.sectionLabel} accessibilityRole="header">
         CHOOSE A GAME

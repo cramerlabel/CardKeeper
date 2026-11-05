@@ -5,6 +5,7 @@ import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { ErrorFallback } from '@/components/ErrorFallback';
+import { useCribbageStore } from '@/games/cribbage/store';
 import { useGinStore } from '@/games/ginRummy/store';
 import { colors } from '@/theme';
 
@@ -20,6 +21,7 @@ export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
         onRetry={() => void retry()}
         onReset={() => {
           useGinStore.getState().clear();
+          useCribbageStore.getState().clear();
           void retry();
         }}
       />

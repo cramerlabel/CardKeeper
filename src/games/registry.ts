@@ -11,6 +11,15 @@ export const games: GameDefinition[] = [
     available: true,
   },
   {
+    id: 'cribbage',
+    name: 'Cribbage',
+    description: 'Peg your points on a traditional board. 2–3 players.',
+    route: '/cribbage/setup',
+    icon: 'scoreboard-outline',
+    playerCount: [2, 3],
+    available: false,
+  },
+  {
     id: 'hearts',
     name: 'Hearts',
     description: 'Avoid the hearts and the queen of spades.',

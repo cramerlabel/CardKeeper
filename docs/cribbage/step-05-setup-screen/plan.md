@@ -33,11 +33,16 @@ Read [../plan.md](../plan.md) first, then the Handoffs of steps [2](../step-02-s
 ## Verify
 `npm run lint && npm run typecheck && npm test`; manual run on emulator/device.
 
-## Handoff (fill in when done)
-- Files created:
-- Setup helper signatures:
-- How you reached the screen for testing:
+## Handoff
+- Files created: `src/app/cribbage/setup.tsx`, `src/features/setup/cribbageSetup.ts` (+ `cribbageSetup.test.ts`), `src/features/setup/DealerChips.tsx`, `src/features/setup/cribbageSetupScreen.test.tsx` (screen-level test: render with mocked `expo-router`/AsyncStorage, real store).
+- Setup helper signatures (`@/features/setup/cribbageSetup`): `type FirstDealerChoice = PlayerIndex | 'random'`; `type CribbageTarget = 121 | 61`; `type RandomFn = () => number`; `resolveFirstDealer(choice, playerCount, random = Math.random): PlayerIndex` (a stale/out-of-range index redraws); `normalizeDealerChoice(choice, playerCount): FirstDealerChoice` (falls back to `'random'`); `buildSetup({ names: readonly string[], target, dealer }, random = Math.random) => { valid, errors: (string | null)[], names: string[], target, firstDealer }` (player count = `names.length`, invalid outside 2–3; `random` is only called for a `'random'` dealer); `describeGameLength(target): string` (skunk lines read from engine config).
+- How you reached the screen for testing: debug build on the Pixel 7 emulator (`npx expo run:android`, then `npx expo start`), deep link `adb shell am start -a android.intent.action.VIEW -d "cardkeeper://cribbage/setup" com.steve.cardkeeper`. Checked at 360dp (`wm density 480`) with font scale 1.3: keyboard open, duplicate-name error, 2↔3 players, dealer chips, 61 game, Start (persisted `currentGame` verified in AsyncStorage), saved-game alert, landscape two-column layout, prefill of last names. After Start the app shows "Unmatched Route" because `/cribbage/board` is built in step 8.
 - Gotchas:
-- Updates made to later step plans:
+  - The release APK already on a device has a different signature than the debug build: uninstall it before `expo run:android` can install.
+  - The screen keeps text for all 3 name fields and only renders the first N, so switching 2↔3 keeps typed text; a chosen dealer who no longer exists (Player 3 → 2 players) resets to Random.
+  - `buildSetup` is called when Start is pressed (after the saved-game confirmation), not on render, so Random is drawn at start; render-time validation uses `validateNameList`.
+  - Last names are saved as typed-and-trimmed (blank stays blank, so the prefill shows placeholders); the saved list length also restores the player count. Prefill is skipped once the user touches anything.
+  - Landscape with width >= 600dp shows Players and Game cards side by side; narrower layouts scroll in one column inside `KeyboardAvoidingView` (same as gin).
+- Updates made to later step plans: step 8 notes that setup `router.replace`s to `/cribbage/board` with a fresh game (`deal = 1`, no events), so the board must handle an empty game.
 
 **Before ending:** commit `Cribbage step 5: setup screen`.

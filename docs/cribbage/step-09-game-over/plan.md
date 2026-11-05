@@ -4,6 +4,7 @@ Read [../plan.md](../plan.md) first, then the Handoffs of steps [2](../step-02-s
 
 ## Context from previous steps
 - Engine `computeResult(events, ctx)` => `{ winner, totals, skunk[], margin }`; store `selectResult`, `finishGame`, `abandonGame`, `startGame`.
+- `CribbageBoard` (step 6; real API): `{ pegs: PegPosition[]; playerNames: string[]; config: CribbageConfig; dealer?: PlayerIndex; style?; animate?: boolean }`, imported from `@/features/cribbageBoard/CribbageBoard`. For the final position pass `animate={false}`, key it by the game id, give it a definite size (it fills its container; >= 360x370 dp for 3 players, >= 300x180 dp for 2), and build `pegs` with `pegPositions(events, ctx)` from the finished game (use `history[0]` data when `currentGame` was cleared; `selectPegs` only works on `currentGame`). Omit `dealer` (or pass the last dealer) as you prefer; omitting hides the badge. Skunk lines are always drawn on the board, so the result screen can point to them.
 - Board screen redirects to `/cribbage/game-over` when the game finishes (step 8).
 - Reference: `src/app/gin/game-over.tsx`, `src/features/gameOver/{WinnerBanner,ScoreBreakdown,summary}.ts*` and `summary.test.ts`.
 - Register in `src/app/_layout.tsx`: `<Stack.Screen name="cribbage/game-over" options={{ animation: 'fade' }} />`.

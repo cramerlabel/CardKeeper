@@ -11,7 +11,7 @@ export interface Point {
 }
 
 export interface BoardLane {
-  /** Index 0 is the off-track start point; indices 1..target are score holes. */
+  /** Index 0 is the start hole (just before hole 1); indices 1..target are score holes. */
   holes: Point[];
 }
 
@@ -29,8 +29,14 @@ export interface BoardGeometry {
   laneCount: PlayerCount;
   holeRadius: number;
   pegRadius: number;
+  /** Radius of the innermost lane's end arcs; the free space inside the board shrinks with it. */
+  innerRadius: number;
   lanes: BoardLane[];
   startPoints: Point[];
+  /** Second start hole per lane, behind the first one, where the waiting back peg sits. */
+  backStartPoints: Point[];
+  /** Where to draw the dealer badge for each lane, in the gap between the game hole and the start. */
+  dealerPoints: Point[];
   /** Center of the per-lane game holes; use lanes[*].holes[target] for each peg destination. */
   gameHole: Point;
   skunkMarks: SkunkMark[];
@@ -49,6 +55,14 @@ const TRACK_MARGIN_EXTRA = 2;
 const MAX_LANE_SPACING = 30;
 const MIN_INNER_RADIUS_EXTRA = 1;
 const GROUP_GAP_UNITS = 0.45;
+const START_OFFSET_RADII = 1.5;
+const BACK_START_SPACING_RADII = 2.2;
+const DEALER_BADGE_CLEARANCE = 1;
+// Room between the game hole and hole 1: both start holes, the dealer badge and clearances.
+const TAIL_GAP_RADII = 8;
+
+/** Radius of the dealer badge relative to the peg radius. */
+export const DEALER_BADGE_RADIUS_RATIO = 0.9;
 
 function assertPositiveFinite(value: number, name: string): void {
   if (!Number.isFinite(value) || value <= 0) {
@@ -96,6 +110,31 @@ function pointAtDistance(
     x: leftCenterX + radius * Math.cos(angle),
     y: centerY + radius * Math.sin(angle),
   };
+}
+
+/**
+ * Maps a distance along the reference (outermost) lane to the matching position on a lane of
+ * the given radius: straights are shared, arcs shrink with the radius. Holes placed through this
+ * line up radially across lanes, so a skunk line crosses every lane at a right angle.
+ */
+function laneDistance(
+  referenceDistance: number,
+  straightLength: number,
+  referenceRadius: number,
+  radius: number,
+): number {
+  const scale = radius / referenceRadius;
+  const referenceArc = Math.PI * referenceRadius;
+  const perimeter = 2 * straightLength + 2 * referenceArc;
+  const distance = ((referenceDistance % perimeter) + perimeter) % perimeter;
+
+  if (distance <= straightLength) return distance;
+  const afterTop = distance - straightLength;
+  if (afterTop <= referenceArc) return straightLength + afterTop * scale;
+  const afterRightArc = afterTop - referenceArc;
+  if (afterRightArc <= straightLength) return straightLength + referenceArc * scale + afterRightArc;
+  const afterBottom = afterRightArc - straightLength;
+  return 2 * straightLength + referenceArc * scale + afterBottom * scale;
 }
 
 function orientPoint(point: Point, orientation: BoardOrientation): Point {
@@ -151,48 +190,54 @@ export function buildBoard({
   );
   const groupCount = Math.floor((config.target - 1) / 5);
   const totalUnits = config.target - 1 + groupCount * GROUP_GAP_UNITS;
+  const startOffset = START_OFFSET_RADII * pegRadius;
+  const backStartOffset = startOffset + BACK_START_SPACING_RADII * pegRadius;
+  const dealerOffset =
+    backStartOffset + (1 + DEALER_BADGE_RADIUS_RATIO) * pegRadius + DEALER_BADGE_CLEARANCE;
+  const tailGap = TAIL_GAP_RADII * pegRadius;
+  const straightLength = longSize - 2 * margin - 2 * outerRadius;
+  if (straightLength <= 0) {
+    throw new RangeError('Board is too small to fit the requested track.');
+  }
+  // Holes are spaced along the outermost lane and mapped onto the others (see laneDistance).
+  // The tail gap lies in the left arc, where the innermost lane is shortest, so size it for that.
+  const innerScale = radii[0] / outerRadius;
+  const tailGapOnReference = tailGap / innerScale;
+  if (tailGapOnReference > Math.PI * outerRadius) {
+    throw new RangeError('Board is too small to fit the requested track.');
+  }
+  const referenceTrack = 2 * straightLength + 2 * Math.PI * outerRadius - tailGapOnReference;
   const localLanes: BoardLane[] = [];
   const localStartPoints: Point[] = [];
-  const perimeters: number[] = [];
+  const localBackStartPoints: Point[] = [];
+  const localDealerPoints: Point[] = [];
 
   for (const radius of radii) {
-    const straightLength = longSize - 2 * margin - 2 * outerRadius;
-    if (straightLength <= 0) {
-      throw new RangeError('Board is too small to fit the requested track.');
-    }
-
-    const perimeter = 2 * straightLength + 2 * Math.PI * radius;
-    perimeters.push(perimeter);
-    const centerY = shortSize / 2;
-    const firstHole = pointAtDistance(0, longSize, shortSize, margin, outerRadius, radius);
-    const startPoint = {
-      x: Math.max(margin, firstHole.x - 1.5 * pegRadius),
-      y: centerY - radius,
-    };
+    const at = (distance: number) =>
+      pointAtDistance(distance, longSize, shortSize, margin, outerRadius, radius);
+    // The loop is closed, so points behind hole 1 (negative distances) lie in the tail gap that
+    // separates the game hole from the start holes.
+    const startPoint = at(-startOffset);
     const holes = [startPoint];
 
     for (let index = 1; index <= config.target; index += 1) {
       const progressUnits = index - 1 + Math.floor((index - 1) / 5) * GROUP_GAP_UNITS;
-      holes.push(
-        pointAtDistance(
-          (progressUnits / totalUnits) * perimeter,
-          longSize,
-          shortSize,
-          margin,
-          outerRadius,
-          radius,
-        ),
-      );
+      const referenceDistance = (progressUnits / totalUnits) * referenceTrack;
+      holes.push(at(laneDistance(referenceDistance, straightLength, outerRadius, radius)));
     }
 
     localLanes.push({ holes });
     localStartPoints.push(startPoint);
+    localBackStartPoints.push(at(-backStartOffset));
+    localDealerPoints.push(at(-dealerOffset));
   }
 
   const lanes = localLanes.map((lane) => ({
     holes: lane.holes.map((point) => orientPoint(point, orientation)),
   }));
   const startPoints = localStartPoints.map((point) => orientPoint(point, orientation));
+  const backStartPoints = localBackStartPoints.map((point) => orientPoint(point, orientation));
+  const dealerPoints = localDealerPoints.map((point) => orientPoint(point, orientation));
   const gameHolePoints = lanes.map((lane) => lane.holes[config.target]);
   const gameHole = {
     x: gameHolePoints.reduce((total, point) => total + point.x, 0) / gameHolePoints.length,
@@ -227,7 +272,8 @@ export function buildBoard({
     1,
     Math.min(
       4,
-      ...perimeters.map((perimeter) => (perimeter / totalUnits) * 0.28),
+      // Arcs of the innermost lane are the tightest, so they set the smallest hole spacing.
+      (referenceTrack / totalUnits) * innerScale * 0.28,
       laneSpacing * 0.2,
     ),
   );
@@ -239,8 +285,11 @@ export function buildBoard({
     laneCount: playerCount,
     holeRadius,
     pegRadius,
+    innerRadius: radii[0],
     lanes,
     startPoints,
+    backStartPoints,
+    dealerPoints,
     gameHole,
     skunkMarks,
   };

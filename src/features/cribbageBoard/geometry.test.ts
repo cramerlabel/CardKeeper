@@ -1,5 +1,11 @@
 import { SHORT_CONFIG, STANDARD_CONFIG } from '@/games/cribbage/engine';
-import { buildBoard, LANE_COLOR_KEYS, pegPathPoints, pegPoint } from './geometry';
+import {
+  buildBoard,
+  DEALER_BADGE_RADIUS_RATIO,
+  LANE_COLOR_KEYS,
+  pegPathPoints,
+  pegPoint,
+} from './geometry';
 import type { BoardGeometry, Point } from './geometry';
 
 const SIZE_CASES = [
@@ -33,6 +39,8 @@ describe('buildBoard', () => {
       expect(board.lanes).toHaveLength(playerCount);
       expect(board.lanes.every((lane) => lane.holes.length === config.target + 1)).toBe(true);
       expect(board.startPoints).toHaveLength(playerCount);
+      expect(board.backStartPoints).toHaveLength(playerCount);
+      expect(board.dealerPoints).toHaveLength(playerCount);
       expect(board.lanes.map((lane) => lane.holes[0])).toEqual(board.startPoints);
     }
   });
@@ -92,6 +100,76 @@ describe('buildBoard', () => {
         expect(
           Math.abs(Math.hypot(localPoint.x - nearestX, localPoint.y - shortSize / 2) - radius),
         ).toBeLessThan(1e-6);
+      }
+    });
+  });
+
+  it('aligns holes radially across lanes so lines through them are square to the track', () => {
+    for (const [width, height] of SIZE_CASES) {
+      const board = buildBoard({ width, height, playerCount: 3, config: STANDARD_CONFIG });
+      const [inner, middle, outer] = board.lanes.map((lane) => lane.holes);
+      for (let index = 2; index < STANDARD_CONFIG.target; index += 1) {
+        const across = { x: outer[index].x - inner[index].x, y: outer[index].y - inner[index].y };
+        const innerStep = {
+          x: middle[index].x - inner[index].x,
+          y: middle[index].y - inner[index].y,
+        };
+        const along = {
+          x: inner[index + 1].x - inner[index - 1].x,
+          y: inner[index + 1].y - inner[index - 1].y,
+        };
+        const lengthAcross = Math.hypot(across.x, across.y);
+        const lengthStep = Math.hypot(innerStep.x, innerStep.y);
+        const lengthAlong = Math.hypot(along.x, along.y);
+        // All three lanes sit on one straight line...
+        expect(
+          Math.abs(across.x * innerStep.y - across.y * innerStep.x) / (lengthAcross * lengthStep),
+        ).toBeLessThan(1e-6);
+        // ...which is square to the direction of travel.
+        expect(
+          Math.abs(across.x * along.x + across.y * along.y) / (lengthAcross * lengthAlong),
+        ).toBeLessThan(0.1);
+      }
+    }
+  });
+
+  it.each([STANDARD_CONFIG, SHORT_CONFIG])(
+    'keeps the game hole, dealer badge and both start holes apart in every lane (target %#)',
+    (config) => {
+      for (const [width, height] of SIZE_CASES) {
+        for (const playerCount of [2, 3] as const) {
+          const board = buildBoard({ width, height, playerCount, config });
+          const minimumGap = 2 * board.pegRadius;
+          board.lanes.forEach((lane, index) => {
+            const start = lane.holes[0];
+            const back = board.backStartPoints[index];
+            const dealer = board.dealerPoints[index];
+            const game = lane.holes[config.target];
+            expect(distance(start, back)).toBeGreaterThanOrEqual(minimumGap);
+            expect(distance(game, back)).toBeGreaterThanOrEqual(minimumGap);
+            expect(distance(game, start)).toBeGreaterThanOrEqual(minimumGap);
+            expect(distance(game, dealer)).toBeGreaterThanOrEqual(
+              board.pegRadius * (1 + DEALER_BADGE_RADIUS_RATIO),
+            );
+            expect(distance(back, dealer)).toBeGreaterThanOrEqual(
+              board.pegRadius * (1 + DEALER_BADGE_RADIUS_RATIO),
+            );
+            expect(distance(game, lane.holes[1])).toBeGreaterThanOrEqual(minimumGap);
+            expectPointInBounds(back, board);
+            expectPointInBounds(dealer, board);
+          });
+        }
+      }
+    },
+  );
+
+  it('does not place any start slot on top of a score hole', () => {
+    const board = buildBoard({ width: 360, height: 780, playerCount: 3, config: STANDARD_CONFIG });
+    board.lanes.forEach((lane, index) => {
+      for (const slot of [lane.holes[0], board.backStartPoints[index]]) {
+        for (const hole of lane.holes.slice(1)) {
+          expect(distance(slot, hole)).toBeGreaterThan(board.holeRadius * 2);
+        }
       }
     });
   });

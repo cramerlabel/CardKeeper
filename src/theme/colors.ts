@@ -18,6 +18,14 @@ export const colors = {
   cardRed: '#C8372D',
   cardBlack: '#1C1C1E',
   overlay: 'rgba(0, 0, 0, 0.5)',
+  // Cribbage board: wood body, dark holes, light markings, and one bright peg colour per lane.
+  boardWood: '#6B4226',
+  boardRim: '#B5834F',
+  boardHole: '#120A04',
+  boardLine: '#F7EBCB',
+  pegRed: '#FF8577',
+  pegBlue: '#6EC1FF',
+  pegGreen: '#6FE39A',
 } as const;
 
 export type ColorToken = keyof typeof colors;

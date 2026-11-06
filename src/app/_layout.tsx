@@ -45,6 +45,7 @@ export default function RootLayout() {
       >
         <Stack.Screen name="gin/game-over" options={{ animation: 'fade' }} />
         <Stack.Screen name="gin/hand" options={{ animation: 'slide_from_bottom' }} />
+        <Stack.Screen name="cribbage/score" options={{ animation: 'slide_from_bottom' }} />
       </Stack>
     </SafeAreaProvider>
   );

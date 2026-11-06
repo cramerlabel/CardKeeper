@@ -11,6 +11,8 @@ interface KeypadProps {
   onBackspace: () => void;
   onClear: () => void;
   disabled?: boolean;
+  /** Overrides the key height (defaults to a width-scaled 52dp, 48dp in short landscape). */
+  keyHeight?: number;
 }
 
 const ROWS = [
@@ -20,10 +22,16 @@ const ROWS = [
 ] as const;
 
 /** Large on-screen numeric keypad (so the system keyboard never covers the form). */
-export function Keypad({ onDigit, onBackspace, onClear, disabled }: KeypadProps) {
+export function Keypad({
+  onDigit,
+  onBackspace,
+  onClear,
+  disabled,
+  keyHeight: height,
+}: KeypadProps) {
   const scale = useTextScale();
   const { isDense } = useResponsive();
-  const keyHeight = isDense ? 48 : scale(52);
+  const keyHeight = height ?? (isDense ? 48 : scale(52));
   const fontSize = scale(24);
 
   const key = (label: string, onPress: () => void, content: ReactNode, secondary = false) => (

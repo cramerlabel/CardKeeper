@@ -17,7 +17,7 @@ export const games: GameDefinition[] = [
     route: '/cribbage/setup',
     icon: 'scoreboard-outline',
     playerCount: [2, 3],
-    available: false,
+    available: true,
   },
   {
     id: 'hearts',

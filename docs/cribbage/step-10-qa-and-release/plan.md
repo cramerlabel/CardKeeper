@@ -5,6 +5,7 @@ Read [../plan.md](../plan.md) first, then the Handoffs of **all** earlier steps 
 ## Context from previous steps
 - Cribbage is fully playable (setup, board, score entry, game-over). Existing QA conventions: screenshots in `docs/qa/` (phone/small/tablet, portrait/landscape, font scale 1.5), release process in `README.md` ("Building the release APK", "Bumping the version"), earlier step docs `step-9.md`/`step-10.md` at the repo root for the Android toolchain (JDK 17, `ANDROID_HOME`, emulator `emulator-5554`).
 - `react-native-svg` is a native module: the Android project must be regenerated (`npx expo prebuild --platform android --clean`) before the release build.
+- Board screen (step 8): QA screenshots `docs/qa/cribbage-boardscreen-*.png` (3 players, phone portrait/landscape, tablet landscape; font scale 1.5 and 2 players were only checked by eye on the emulator, not saved). Open items from its Handoff: the landscape-phone layout at font scale 1.5 leaves the history almost no height (consider capping the header button text scale), panels are one big button each (verify TalkBack reads "Alice: 42 points, ... Adds a score for Alice"), and the "Next deal" confirmation/announcement ("Deal N. X is dealing.") should be checked with TalkBack. Home grid opens `/cribbage/setup` and the Continue card (3 players) opens `/cribbage/board`; both were verified on the emulator in step 8.
 
 ## Goal
 Verify everything end to end, fix defects found, and produce a release APK.

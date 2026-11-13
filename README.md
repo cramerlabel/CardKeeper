@@ -1,6 +1,6 @@
 # Card Keeper
 
-Card-game score keeper for Android phones and tablets, built with Expo (SDK 58) and Expo Router. Gin Rummy is playable; Hearts, Spades and Euchre are "coming soon" placeholders with rules pages.
+Card-game score keeper for Android phones and tablets, built with Expo (SDK 58) and Expo Router. Gin Rummy and Cribbage are playable; Hearts, Spades and Euchre are "coming soon" placeholders with rules pages.
 
 ## Development
 

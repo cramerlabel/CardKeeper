@@ -34,9 +34,29 @@ Read [../plan.md](../plan.md) first, then the Handoffs of steps [2](../step-02-s
 
 ## Handoff (fill in when done)
 - Files created/changed:
+  - New: `src/app/cribbage/board.tsx` (the screen); `src/features/cribbageHistory/{history.ts, history.test.ts, CribbageHistory.tsx}`; `src/features/cribbagePanel/CribbagePlayerPanel.tsx`; `src/features/cribbageScreen/cribbageBoardScreen.test.tsx` (25 screen tests against the real store, mocked `expo-router`/haptics/`@expo/vector-icons`).
+  - Changed: `src/games/registry.ts` (`cribbage` -> `available: true`), `src/games/registry.test.ts` (Gin Rummy and Cribbage available, routes), `README.md` intro.
+  - QA screenshots (Pixel 7 emulator, API 35, 1080x2220 @480 = 360x740 dp, and the same emulator resized to 1280x800 dp): `docs/qa/cribbage-boardscreen-{phone-portrait-3p,phone-landscape-3p,tablet-landscape-3p}.png`.
+  - Route tests must NOT live under `src/app` (Expo Router turns every file there into a route and Metro then fails on the Jest globals); the screen test sits in `src/features/cribbageScreen/` and imports `@/app/cribbage/board`, like the score and setup screen tests.
+- Public pieces:
+  - `@/features/cribbageHistory/history`: `buildHistorySections({ events, players, firstDealer, deal, target }): HistorySection[]` (`{ deal, dealerName, isCurrent, rows }`, newest deal first, rows newest first; a section exists for every deal with scores plus always the current deal, even when empty; `HistoryRow` = `{ id, number, deal, player, playerName, kind, kindLabel, points, total (the player's running total, capped at the target), description ("Bob +6 (Hand)") }`), `flattenHistory(sections)` (flat list items for `FlatList`), `hasScoresInDeal(events, deal)`, `leaderOf(totals): PlayerIndex | null` (strict leader; `null` on a tie for the lead or 0-0).
+  - `CribbageHistory({ sections, onSelectScore(id) })` (flex-1 card; a `FlatList` with "DEAL N / X deals|dealt" headers) and `CribbagePlayerPanel({ name, total, color, dealer, leading, dense?, onAddScore, style? })` (the whole panel is one 48dp+ button; `describePanel` builds its accessibility label).
 - Layout breakpoints/decisions:
+  - Same split as gin: `isLandscape` = side by side, `isDense` (landscape and height < 480 dp) moves "Next deal" and "Add score" into the header.
+  - Portrait: board (`flex: 5`), panels row, history (`flex: 3`), then "Next deal" / "Add score" at the bottom (thumb reach, like gin's "Add hand"). 3 players on 360x740: everything including the buttons fits without scrolling; the board box is about 328x245 dp (horizontal track).
+  - Landscape: board left (`flex: 1`), right column (`flex: 1`) with panels, the two buttons (not when dense) and the history. Tablet landscape gets a tall box, so the board is vertical there.
+  - Panels: not wrapped in an accessible `Card` (a nested button would be unreachable by TalkBack); the panel itself is the button. Dense panels drop the "+ Score" pill and show a short "Dealer" badge beside the total so the history keeps some height on a phone on its side.
+  - Text: `useTextScale` for sizes, `maxFontSizeMultiplier` 1.2/1.3 on panels, history and header; checked at font scale 1.5 in portrait (fits) and landscape (fits, but the history shows less than one row).
+  - "Next deal" asks for confirmation only when the current deal has no scores; it announces "Deal N. Alice is dealing." for screen readers. Undo/End/Abandon use the same confirmations as gin; store failures (`ActionResult.ok === false`) are shown in an alert.
+  - `CribbageBoard` is keyed by `game.id`; pegs/totals come from `selectPegs`/`selectTotals` and the dealer from `selectDealer`.
 - Anything the game-over screen needs (selectors/routes):
+  - The board's focus effect already does `router.replace('/cribbage/game-over' as never)` when `currentGame.status === 'finished'` (target reached via the score modal, or "End game now"). Game-over must handle `currentGame` with `status: 'finished'` (and `history[0]` once `currentGame` is cleared).
+  - Reusable for a "Review scores" list: `buildHistorySections(...)` + `CribbageHistory` (pass a no-op `onSelectScore`, or navigate to the board); `leaderOf`; `laneColor`; `describePanel`.
+  - The home "Continue game" card and `selectHasSavedGame` already exclude finished games.
 - Known issues:
-- Updates made to later step plans:
+  - Until step 9 lands, finishing a game redirects to `/cribbage/game-over`, which is an "Unmatched Route" (the board is replaced, so back goes home). Do not ship step 8 alone.
+  - Landscape phone at font scale 1.5: header buttons and panels take most of the height; the history is barely visible (it still scrolls). Consider capping the header button text scale in step 10.
+  - Emulators here use software GL (see step 6); peg smoothness on a real device is still a step 10 item. The "Looks like you have configured linking in multiple places" dev toast appears after adb deep links (dev builds only).
+- Updates made to later step plans: step 9 "Context from previous steps" (redirect already implemented, reusable history/leader helpers, route-test location); step 10 (known issues, QA matrix additions).
 
 **Before ending:** update `step-09-game-over/plan.md` and `step-10-qa-and-release/plan.md`; commit `Cribbage step 8: board screen`.

@@ -39,7 +39,8 @@
         {
           "style": "light"
         }
-      ]
+      ],
+      "expo-status-bar"
     ],
     "scheme": "cardkeeper",
     "backgroundColor": "#0B3D2E"
